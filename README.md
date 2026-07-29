@@ -38,7 +38,7 @@ chatbot/
 ## Features
 - **Current (v0.1 / v0.2)**: 
   - Clean monorepo structure, TypeScript configured, Frontend & Backend boilerplates.
-  - **PDF Upload Endpoint**: `POST /api/upload` storing files locally.
+  - **Document Processing**: `POST /api/upload` endpoint for PDF uploads. Automatically extracts text using `pdf-parse`.
 - **Planned**: Document Chunking & Storage, Mock LLM Answers, RAG Pipeline.
 
 ## Installation
@@ -87,5 +87,5 @@ PORT=3000
 
 ## Current Progress
 - **Milestone 1**: Project initialized. Folder structure mapped out.
-- **Milestone 2**: Implemented the PDF Upload Endpoint using Multer.
+- **Milestone 2**: Implemented PDF Uploads and Raw Text Extraction (pdf-parse) on the backend.
 

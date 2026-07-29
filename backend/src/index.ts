@@ -4,6 +4,16 @@ import uploadRoutes from './routes/upload.routes';
 
 dotenv.config();
 
+// Global handler to prevent unhandled promise rejections from crashing the server
+// This is necessary because older libraries like pdf-parse can leak unhandled rejections internally.
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception thrown:', error);
+});
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 

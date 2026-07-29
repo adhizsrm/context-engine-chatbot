@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
+import { DocumentService } from '../services/document.service';
 
 /**
  * Controller to handle document upload endpoint.
  * Multer middleware should run before this to process the file.
  */
-export const uploadDocument = (req: Request, res: Response): void => {
+export const uploadDocument = async (req: Request, res: Response): Promise<void> => {
     try {
         const file = (req as any).file;
         if (!file) {
@@ -12,18 +13,35 @@ export const uploadDocument = (req: Request, res: Response): void => {
             return;
         }
 
-        // Returning success with file metadata (avoiding processing for now)
+        // Delegate business logic to the service layer
+        const extractedText = await DocumentService.processUpload(file.path);
+
         res.status(200).json({
-            message: 'File uploaded successfully',
+            message: 'File uploaded and parsed successfully',
             file: {
                 originalname: file.originalname,
                 filename: file.filename,
                 mimetype: file.mimetype,
                 size: file.size,
             },
+            extractedText: extractedText // Milestone 2: Returning the parsed text directly
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Upload Error:', error);
-        res.status(500).json({ error: 'Internal Server Error during file upload.' });
+
+        // Check if the error originated from our PDF parser
+        if (error.message && error.message.startsWith('PARSE_ERROR:')) {
+            const exactReason = error.message.replace('PARSE_ERROR: ', '');
+            res.status(400).json({
+                error: 'The uploaded PDF is malformed, corrupted, or unsupported.',
+                details: exactReason
+            });
+            return;
+        }
+
+        res.status(500).json({
+            error: 'Internal Server Error during file upload.',
+            details: error.message
+        });
     }
 };
