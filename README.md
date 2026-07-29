@@ -36,8 +36,10 @@ chatbot/
 ```
 
 ## Features
-- **Current (v0.1)**: Clean monorepo structure, TypeScript configured, Frontend & Backend boilerplates.
-- **Planned**: Document Upload, Chunking & Storage, Mock LLM Answers, RAG Pipeline.
+- **Current (v0.1 / v0.2)**: 
+  - Clean monorepo structure, TypeScript configured, Frontend & Backend boilerplates.
+  - **PDF Upload Endpoint**: `POST /api/upload` storing files locally.
+- **Planned**: Document Chunking & Storage, Mock LLM Answers, RAG Pipeline.
 
 ## Installation
 Ensure you have Node.js installed.
@@ -85,4 +87,5 @@ PORT=3000
 
 ## Current Progress
 - **Milestone 1**: Project initialized. Folder structure mapped out.
+- **Milestone 2**: Implemented the PDF Upload Endpoint using Multer.
 

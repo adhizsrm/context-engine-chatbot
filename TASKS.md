@@ -11,5 +11,7 @@
 
 ## Future Milestones (⬜ Todo)
 - [ ] Milestone 2: Document Parser Integration
+  - [x] Task 1: Basic PDF Upload Endpoint (Multer)
+  - [ ] Task 2: Next tasks...
 - [ ] Milestone 3: Mock LLM / Conversation History
 - [ ] Milestone 4: RAG Implementation (Chunking, Storage, Retrieval)
