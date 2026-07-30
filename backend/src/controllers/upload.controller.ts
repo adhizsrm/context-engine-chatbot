@@ -14,7 +14,7 @@ export const uploadDocument = async (req: Request, res: Response): Promise<void>
         }
 
         // Delegate business logic to the service layer
-        const chunks = await DocumentService.processUpload(file.path);
+        const embeddedChunks = await DocumentService.processUpload(file.path);
 
         res.status(200).json({
             message: 'File uploaded and parsed successfully',
@@ -27,7 +27,7 @@ export const uploadDocument = async (req: Request, res: Response): Promise<void>
             // TODO: In production, do not return raw chunks to HTTP client.
             // Acknowledge successful ingestion/processing instead.
             // Returned temporarily for debugging purposes.
-            chunks
+            chunks: embeddedChunks
         });
     } catch (error: any) {
         console.error('Upload Error:', error);
