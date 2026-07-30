@@ -1,25 +1,47 @@
-import { PdfParser } from '../parser/pdf.parser';
-import fs from 'fs';
+import { PdfParser } from "../parser/pdf.parser";
+import { TextChunker } from "../chunker/text.chunker";
+import { TextChunk } from "../types/chunk.types";
 
 export class DocumentService {
     /**
-     * Orchestrates the parsing of an uploaded document.
-     * @param filePath Path where the file is stored.
-     * @returns The parsed text from the document.
+     * Chunking configuration.
+     * Keeping these as constants avoids magic numbers and makes
+     * experimentation easier during retrieval tuning.
      */
-    static async processUpload(filePath: string): Promise<string> {
-        try {
-            // For Milestone 2: We only extract the text.
-            // In the future, chunking and embedding logic will go here.
-            const rawText = await PdfParser.parse(filePath);
+    private static readonly CHUNK_SIZE = 1000;
+    private static readonly CHUNK_OVERLAP = 200;
 
-            // Optional: We can delete the file after parsing if we don't want to keep it,
-            // but for robustness in the RAG pipeline or if we want to preview it, keeping it is fine.
-            // Let's decide to keep it in the uploads folder as planned.
+    /**
+     * Orchestrates the document ingestion pipeline.
+     *
+     * Current pipeline:
+     * PDF -> Raw Text -> Text Chunks
+     *
+     * @param filePath Path to the uploaded PDF.
+     * @returns An array of structured TextChunk objects.
+     */
+    static async processUpload(filePath: string): Promise<TextChunk[]> {
+        // Step 1: Extract raw text from the uploaded PDF.
+        const rawText = await PdfParser.parse(filePath);
 
-            return rawText;
-        } catch (error) {
-            throw error;
-        }
+        // Step 2: Split the extracted text into overlapping chunks.
+        const chunks = TextChunker.chunkText(
+            rawText,
+            this.CHUNK_SIZE,
+            this.CHUNK_OVERLAP
+        );
+
+        // Future pipeline:
+        // PDF
+        //   ↓
+        // Parser
+        //   ↓
+        // Chunker
+        //   ↓
+        // Embedding Service
+        //   ↓
+        // Vector Database
+
+        return chunks;
     }
 }
