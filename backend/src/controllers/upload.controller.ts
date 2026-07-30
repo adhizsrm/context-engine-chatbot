@@ -27,7 +27,7 @@ export const uploadDocument = async (req: Request, res: Response): Promise<void>
             // TODO: In production, do not return raw chunks to HTTP client.
             // Acknowledge successful ingestion/processing instead.
             // Returned temporarily for debugging purposes.
-            chunks: embeddedChunks
+            embeddedChunks: embeddedChunks
         });
     } catch (error: any) {
         console.error('Upload Error:', error);
