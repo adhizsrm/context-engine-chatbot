@@ -5,6 +5,7 @@ import { uploadMiddleware } from '../middleware/upload';
 const router = Router();
 
 // POST /api/upload -> expecting form-data with key 'document'
-router.post('/', uploadMiddleware.single('document'), uploadDocument);
+//router.post('/', uploadMiddleware.single('document'), uploadDocument);
+router.post('/upload', uploadMiddleware.single('document'), uploadDocument);
 
 export default router;

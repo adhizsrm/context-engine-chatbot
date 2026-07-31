@@ -13,21 +13,19 @@ export const uploadDocument = async (req: Request, res: Response): Promise<void>
             return;
         }
 
-        // Delegate business logic to the service layer
-        const embeddedChunks = await DocumentService.processUpload(file.path);
+        // Delegate business logic to the service layer natively yielding success metrics
+        const stats = await DocumentService.processUpload(file.path);
 
         res.status(200).json({
-            message: 'File uploaded and parsed successfully',
+            message: stats.message,
+            documentId: stats.documentId,
+            chunksStored: stats.chunksStored,
             file: {
                 originalname: file.originalname,
                 filename: file.filename,
                 mimetype: file.mimetype,
                 size: file.size,
-            },
-            // TODO: In production, do not return raw chunks to HTTP client.
-            // Acknowledge successful ingestion/processing instead.
-            // Returned temporarily for debugging purposes.
-            embeddedChunks: embeddedChunks
+            }
         });
     } catch (error: any) {
         console.error('Upload Error:', error);
