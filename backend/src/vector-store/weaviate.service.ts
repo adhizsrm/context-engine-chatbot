@@ -1,6 +1,7 @@
 import weaviate, { WeaviateClient } from 'weaviate-client';
 import { WEAVIATE_CONFIG } from '../config/weaviate.config';
 import { EmbeddedChunk } from '../types/embedding.types';
+import { RetrievedChunk } from '../types/chunk.types';
 
 export class WeaviateService {
     private static client: WeaviateClient;
@@ -94,10 +95,41 @@ export class WeaviateService {
     }
 
     /**
-     * Future milestone: Retrieves documents via vector similarity parsing parameters.
+     * Retrieves documents via vector similarity parsing parameters natively against the indexed collections.
+     * @param queryVector The embedding representation of the user query.
+     * @param topK The maximum number of contextual chunks to retrieve (default: 5).
+     * @returns An array of structurally cohesive RetrievedChunk objects.
      */
-    static async search(queryVector: number[], topK: number = 5): Promise<any> {
-        throw new Error("search(...) strictly not implemented in Milestone 5.");
+    static async search(queryVector: number[], topK: number = 5): Promise<RetrievedChunk[]> {
+        if (!this.client) {
+            throw new Error("WeaviateService not initialized. Application boots must call initialize() primarily.");
+        }
+
+        try {
+            const collection = this.client.collections.get(WEAVIATE_CONFIG.COLLECTION_NAME);
+
+            // Execute the native nearest neighbor mathematical query matching the vector bounds.
+            const result = await collection.query.nearVector(queryVector, {
+                limit: topK,
+                returnMetadata: ['distance']
+            });
+
+            // Map and safely unpack the objects dynamically returning the cohesive schema back strictly. 
+            return result.objects.map(obj => ({
+                id: (obj.uuid || (obj as any).id) as string,
+                text: obj.properties.text as string,
+                metadata: {
+                    documentId: obj.properties.documentId as string,
+                    source: obj.properties.source as string | undefined,
+                    page: obj.properties.page as number | undefined,
+                    chunkIndex: obj.properties.chunkIndex as number,
+                    createdAt: obj.properties.createdAt as string | undefined
+                },
+                distance: obj.metadata?.distance as number
+            }));
+        } catch (error: any) {
+            throw new Error(`Weaviate vector search failed.\n\nDetails: ${error.message}`);
+        }
     }
 
     /**

@@ -8,21 +8,47 @@ export class EmbeddingService {
      * 
      * @param chunks The structured text chunks requiring vector embeddings.
      * @returns An array of EmbeddedChunk objects.
-     * @throws If the embedding provider is unreachable or returns malformed data.
      */
     static async generateEmbeddings(chunks: TextChunk[]): Promise<EmbeddedChunk[]> {
         if (!chunks || chunks.length === 0) {
             return [];
         }
 
-        try {
-            const inputs = chunks.map(chunk => chunk.text);
+        const inputs = chunks.map(chunk => chunk.text);
+        const embeddings = await this.embedTexts(inputs);
 
+        return chunks.map((chunk, index) => ({
+            id: chunk.id,
+            text: chunk.text,
+            metadata: chunk.metadata,
+            embedding: embeddings[index]
+        }));
+    }
+
+    /**
+     * Generates a single embedding vector for a natural language user query.
+     * 
+     * @param query The user's typed question.
+     * @returns A single numeric array (vector).
+     */
+    static async generateQueryEmbedding(query: string): Promise<number[]> {
+        if (!query || query.trim() === '') {
+            throw new Error("Query string cannot be empty.");
+        }
+
+        const embeddings = await this.embedTexts([query]);
+        return embeddings[0];
+    }
+
+    /**
+     * Low-level method to communicate with the embedding provider natively.
+     * Supports array batching by default to preserve high performance.
+     */
+    private static async embedTexts(inputs: string[]): Promise<number[][]> {
+        try {
             const response = await fetch(OLLAMA_CONFIG.EMBED_ENDPOINT, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     model: OLLAMA_CONFIG.MODEL,
                     input: inputs
@@ -39,17 +65,12 @@ export class EmbeddingService {
 
             const data = (await response.json()) as OllamaEmbeddingResponse;
 
-            this.validateOllamaResponse(data, chunks.length);
+            this.validateOllamaResponse(data, inputs.length);
 
-            return chunks.map((chunk, index) => ({
-                id: chunk.id,
-                text: chunk.text,
-                metadata: chunk.metadata,
-                embedding: data.embeddings[index]
-            }));
+            return data.embeddings;
 
         } catch (error: any) {
-            // Rethrow beautifully formatted errors directly; no duplicate logging
+            // Rethrow beautifully formatted errors directly
             if (error.message.includes('Embedding generation failed')) {
                 throw error;
             }
@@ -82,8 +103,7 @@ export class EmbeddingService {
             );
         }
 
-        // Validate structure of a random element rather than iterating all of them to save CPU,
-        // or check the first one to assure they are float arrays.
+        // Validate structure of a random element rather than iterating all of them to save CPU
         if (data.embeddings.length > 0 && !Array.isArray(data.embeddings[0])) {
             throw new Error(`Embedding generation failed.\n\nCause:\nArray contains invalid scalar values instead of vectors.`);
         }

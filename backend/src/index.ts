@@ -1,6 +1,7 @@
 import express, { Express, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import uploadRoutes from './routes/upload.routes';
+import chatRoutes from './routes/chat.routes';
 import { WeaviateService } from './vector-store/weaviate.service';
 
 dotenv.config();
@@ -21,7 +22,8 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 
 // Routes
-app.use('/api', uploadRoutes);
+app.use('/api', uploadRoutes); // Contains /upload ... could be restructured internally
+app.use('/api/chat', chatRoutes);
 
 // Simple root route
 app.get('/', (req: Request, res: Response) => {

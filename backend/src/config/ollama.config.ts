@@ -16,5 +16,11 @@ export const OLLAMA_CONFIG = {
     /** 
      * The model pulled in Ollama specifically tuned for embedding representations.
      */
-    MODEL: 'nomic-embed-text'
+    MODEL: 'nomic-embed-text',
+
+    /**
+     * The generalized model used explicitly for text generation (Chat).
+     * Defaults to llama3 for standard generative mappings.
+     */
+    CHAT_MODEL: 'llama2'
 };

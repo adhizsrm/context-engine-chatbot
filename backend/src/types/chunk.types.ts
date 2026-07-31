@@ -33,3 +33,13 @@ export interface TextChunk {
     text: string;
     metadata: ChunkMetadata; // Strictly required now
 }
+
+/**
+ * Represents a document mapped from the Vector DB search response.
+ */
+export interface RetrievedChunk {
+    id: string;
+    text: string;
+    metadata: ChunkMetadata;
+    distance?: number;
+}
