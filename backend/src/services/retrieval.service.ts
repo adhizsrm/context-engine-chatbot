@@ -24,6 +24,18 @@ export class RetrievalService {
         const retrievedChunks = await WeaviateService.search(queryVector, topK);
 
         if (APP_CONFIG.DEBUG_MODE) {
+            console.log("========== RETRIEVED CHUNKS ==========");
+            retrievedChunks.forEach((chunk, index) => {
+                console.log({
+                    rank: index + 1,
+                    id: chunk.id,
+                    chunkIndex: chunk.metadata.chunkIndex,
+                    documentId: chunk.metadata.documentId,
+                    distance: chunk.distance,
+                    preview: chunk.text.substring(0, 80)
+                });
+            });
+            console.log("======================================");
             console.log("========== Retrieval Debug ==========");
             console.log(`Query: "${query}"`);
             console.log(`Retrieved Context Matches: ${retrievedChunks.length}`);

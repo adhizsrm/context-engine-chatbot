@@ -1,4 +1,5 @@
 import { LLMProvider } from './llm.provider.interface';
+import { APP_CONFIG } from '../config/app.config';
 
 export class OpenRouterProvider implements LLMProvider {
     /**
@@ -15,18 +16,30 @@ export class OpenRouterProvider implements LLMProvider {
         }
 
         try {
+
+            const requestBody = {
+                model,
+                messages: [
+                    {
+                        role: "user",
+                        content: prompt
+                    }
+                ]
+            };
+
+            if (APP_CONFIG.DEBUG_MODE) {
+                console.log("========== OPENROUTER REQUEST ==========");
+                console.log(JSON.stringify(requestBody, null, 2));
+                console.log("========================================");
+            }
+
             const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${apiKey}`
                 },
-                body: JSON.stringify({
-                    model: model,
-                    messages: [
-                        { role: 'user', content: prompt }
-                    ]
-                })
+                body: JSON.stringify(requestBody)
             });
 
             if (!response.ok) {

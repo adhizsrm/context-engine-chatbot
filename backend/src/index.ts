@@ -1,3 +1,4 @@
+console.log("🚀 RUNNING src/index.ts");
 import express, { Express, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import uploadRoutes from './routes/upload.routes';

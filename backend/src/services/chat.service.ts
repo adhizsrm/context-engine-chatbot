@@ -1,5 +1,6 @@
 import { LLMProvider } from '../providers/llm.provider.interface';
 import { PromptBuilder } from './prompt.builder';
+import { APP_CONFIG } from '../config/app.config';
 
 export class ChatService {
     /**
@@ -17,6 +18,11 @@ export class ChatService {
         // Step 1: Delegate string manipulation completely mapping to dedicated isolated Prompt layers 
         const prompt = PromptBuilder.buildRagPrompt(query, context);
 
+        if (APP_CONFIG.DEBUG_MODE) {
+            console.log("========== PROMPT ==========");
+            console.log(prompt);
+            console.log("============================");
+        }
         try {
             // Step 2: Decouple native LLM orchestration executing internally purely utilizing bound abstractions 
             return await this.provider.generate(prompt);
