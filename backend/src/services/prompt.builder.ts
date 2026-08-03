@@ -10,6 +10,14 @@ export class PromptBuilder {
      * @returns Safe context generation pipeline prompt.
      */
     static buildRagPrompt(query: string, context: string): string {
-        return `You are a highly helpful and precise assistant. You will answer the user's question based strictly and exclusively on the following provided context. \n\nIf the answer cannot be confidently deduced entirely from the context below, immediately reply with "I don't know based on the provided documents." Do not utilize outside knowledge.\n\nContext:\n${context}\n\nQuestion: ${query}\nAnswer:`;
+        return `
+        You are a highly helpful and precise assistant. 
+        You will answer the user's question based strictly and exclusively on the following provided context. 
+        \n\n
+        If the answer cannot be confidently deduced entirely from the context below, immediately reply with 
+        "I don't know based on the provided documents." Do not utilize outside knowledge.\n\n
+        Context:\n${context}\n\n
+        Question: ${query}\n
+        Answer:`;
     }
 }

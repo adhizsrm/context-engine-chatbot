@@ -1,5 +1,6 @@
 console.log("🚀 RUNNING src/index.ts");
 import express, { Express, Request, Response } from 'express';
+import cors from 'cors';
 import dotenv from 'dotenv';
 import uploadRoutes from './routes/upload.routes';
 import chatRoutes from './routes/chat.routes';
@@ -20,6 +21,7 @@ process.on('uncaughtException', (error) => {
 const app: Express = express();
 const port = process.env.PORT || 3000;
 
+app.use(cors({ origin: 'http://localhost:5173' }));
 app.use(express.json());
 
 // Routes
