@@ -133,9 +133,62 @@ export class WeaviateService {
     }
 
     /**
-     * Future milestone: Uniquely drop document bundles from the vector DB based on bound DocumentIds.
+     * Aggregates distinct structural documents mapped inherently within the bounds natively tracking active contexts.
+     * Extracts exact mapping properties uniquely spanning IDs accurately matching UI requirements natively.
+     */
+    static async getIndexedDocuments(): Promise<any[]> {
+        if (!this.client) throw new Error("WeaviateService not initialized.");
+        const collection = this.client.collections.get(WEAVIATE_CONFIG.COLLECTION_NAME);
+
+        const result = await collection.query.fetchObjects({
+            limit: 10000,
+            returnProperties: ['documentId', 'source', 'createdAt']
+        });
+
+        const documentsMap = new Map<string, any>();
+        for (const obj of result.objects) {
+            const docId = obj.properties.documentId as string;
+            if (!docId) continue;
+
+            if (!documentsMap.has(docId)) {
+                documentsMap.set(docId, {
+                    documentId: docId,
+                    filename: obj.properties.source || 'Unknown File',
+                    timestamp: obj.properties.createdAt || new Date().toISOString(),
+                    chunkCount: 1
+                });
+            } else {
+                documentsMap.get(docId).chunkCount++;
+            }
+        }
+        return Array.from(documentsMap.values());
+    }
+
+    /**
+     * Sequentially scrubs structural bindings explicitly from Vector memory targeting mapped documents.
      */
     static async deleteDocument(documentId: string): Promise<void> {
-        throw new Error("deleteDocument(...) strictly not implemented in Milestone 5.");
+        if (!this.client) throw new Error("WeaviateService not initialized.");
+        const collection = this.client.collections.get(WEAVIATE_CONFIG.COLLECTION_NAME);
+
+        // Fetch matching limits natively extracting structural UUIDs uniquely mapping properties isolated efficiently 
+        const result = await collection.query.fetchObjects({
+            limit: 10000,
+            returnProperties: ['documentId']
+        });
+
+        const objectsToDelete = result.objects.filter((obj) => obj.properties.documentId === documentId);
+        if (objectsToDelete.length === 0) {
+            throw new Error(`Document ID ${documentId} not found in active vector index.`);
+        }
+
+        let deletedCount = 0;
+        for (const obj of objectsToDelete) {
+            if (obj.uuid) {
+                await collection.data.deleteById(obj.uuid);
+                deletedCount++;
+            }
+        }
+        console.log(`[Weaviate] Successfully purged ${deletedCount} chunks across bounds mapped to Document: ${documentId}`);
     }
 }
