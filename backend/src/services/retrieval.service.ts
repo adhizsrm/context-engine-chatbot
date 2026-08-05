@@ -1,17 +1,19 @@
 import { RetrievedChunk } from '../types/chunk.types';
 import { HybridRetrievalService } from './hybrid-retrieval.service';
+import { RankingService } from './ranking.service';
 
 export class RetrievalService {
     /**
      * Unified orchestration endpoint capturing natural language query mapping matrices natively.
      * Defers logic explicitly via our modular HybridRetrievalService bridging parallel search structures cleanly.
+     * Maps the resulting matrices accurately dynamically scoring algorithms sequentially extracting purely explicit bounds locally.
      * 
      * @param query The user's semantic question.
      * @param topK The maximum number of relevant chunks per retrieval methodology (defaults to 5).
-     * @returns An array of structurally mapped RetrievedChunks sorted by Hybrid retrieval metrics natively.
+     * @returns An array of structurally mapped RetrievedChunks sorted by Ranking metrics natively.
      */
     static async retrieveContext(query: string, topK: number = 5): Promise<RetrievedChunk[]> {
-
-        return HybridRetrievalService.retrieveContext(query, topK);
+        const mergedCandidates = await HybridRetrievalService.retrieveContext(query, topK);
+        return RankingService.selectTopCandidates(mergedCandidates, topK);
     }
 }

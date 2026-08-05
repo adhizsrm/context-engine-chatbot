@@ -125,7 +125,9 @@ export class WeaviateService {
                     chunkIndex: obj.properties.chunkIndex as number,
                     createdAt: obj.properties.createdAt as string | undefined
                 },
-                distance: obj.metadata?.distance as number
+                distance: obj.metadata?.distance as number,
+                semanticDistance: obj.metadata?.distance as number,
+                retrievalSource: 'vector' as const
             }));
         } catch (error: any) {
             throw new Error(`Weaviate vector search failed.\n\nDetails: ${error.message}`);
@@ -163,7 +165,9 @@ export class WeaviateService {
                     chunkIndex: obj.properties.chunkIndex as number,
                     createdAt: obj.properties.createdAt as string | undefined
                 },
-                distance: obj.metadata?.score as number
+                distance: obj.metadata?.score as number,
+                keywordScore: obj.metadata?.score as number,
+                retrievalSource: 'keyword' as const
             }));
         } catch (error: any) {
             throw new Error(`Weaviate keyword BM25 search failed.\n\nDetails: ${error.message}`);

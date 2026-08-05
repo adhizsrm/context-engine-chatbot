@@ -42,4 +42,8 @@ export interface RetrievedChunk {
     text: string;
     metadata: ChunkMetadata;
     distance?: number;
+    semanticDistance?: number;
+    keywordScore?: number;
+    rerankScore?: number;
+    retrievalSource?: 'vector' | 'keyword' | 'hybrid';
 }

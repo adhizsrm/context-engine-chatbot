@@ -34,8 +34,12 @@ export class HybridRetrievalService {
 
         // Loop keyword arrays ensuring we don't clobber vectors
         keywordResults.forEach(chunk => {
-            if (!mergedMap.has(chunk.id)) {
+            const existing = mergedMap.get(chunk.id);
+            if (!existing) {
                 mergedMap.set(chunk.id, chunk);
+            } else {
+                existing.keywordScore = chunk.keywordScore;
+                existing.retrievalSource = 'hybrid';
             }
         });
 
