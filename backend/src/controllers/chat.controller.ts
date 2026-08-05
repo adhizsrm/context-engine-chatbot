@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { RetrievalService } from '../services/retrieval.service';
 import { ChatService } from '../services/chat.service';
+import { ConversationMemoryService } from '../services/conversation-memory.service';
 import { APP_CONFIG } from '../config/app.config';
 
 export class ChatController {
@@ -21,11 +22,15 @@ export class ChatController {
                 return;
             }
 
-            // Step 1: Retrieve tightly clustered semantic documents
+            // Step 1: Extract Prior Memory natively matching session mapping
+            const history = ConversationMemoryService.getHistory('default-session');
+
+            // Step 2: Retrieve tightly clustered semantic documents
             const retrievedChunks = await RetrievalService.retrieveContext(query);
 
             // Aggregate raw textual objects safely into delimited strings for prompts
             const contextText = retrievedChunks.map(chunk => chunk.text).join("\n\n---\n\n");
+
             if (APP_CONFIG.DEBUG_MODE) {
                 console.log("========== CONTEXT ==========");
                 console.log(`Context Length: ${contextText.length} characters`);
@@ -38,10 +43,13 @@ export class ChatController {
                 console.log("=============================");
             }
 
-            // Step 2: Feed context explicitly against query bounds targeting generative arrays natively 
-            const responseText = await this.chatService.generateResponse(query, contextText);
+            // Step 3: Feed context explicitly against query bounds targeting generative arrays natively alongside mapped historic context perfectly.
+            const responseText = await this.chatService.generateResponse(query, contextText, history);
 
-            // Step 3: Serve strictly mapped telemetry response 
+            // Step 4: Persist successful interaction intrinsically binding sliding window correctly organically tracking.
+            ConversationMemoryService.addTurn('default-session', query, responseText);
+
+            // Step 5: Serve strictly mapped telemetry response 
             res.status(200).json({
                 query,
                 response: responseText,

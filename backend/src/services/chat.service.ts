@@ -1,6 +1,7 @@
 import { LLMProvider } from '../providers/llm.provider.interface';
 import { PromptBuilder } from './prompt.builder';
 import { APP_CONFIG } from '../config/app.config';
+import { ConversationTurn } from './conversation-memory.service';
 
 export class ChatService {
     /**
@@ -12,11 +13,12 @@ export class ChatService {
      * Generates a conversational LLM response using strictly injected structural retrieved contexts natively.
      * @param query The user's typed question.
      * @param context The consolidated text strings retrieved explicitly from Vector Search.
+     * @param history Previous sliding sequential map bounding explicit tracking natively.
      * @returns The generated model reasoning text natively resolved via explicitly injected Provider. 
      */
-    async generateResponse(query: string, context: string): Promise<string> {
+    async generateResponse(query: string, context: string, history: ConversationTurn[] = []): Promise<string> {
         // Step 1: Delegate string manipulation completely mapping to dedicated isolated Prompt layers 
-        const prompt = PromptBuilder.buildRagPrompt(query, context);
+        const prompt = PromptBuilder.buildRagPrompt(query, context, history);
 
         if (APP_CONFIG.DEBUG_MODE) {
             console.log("========== PROMPT ==========");
