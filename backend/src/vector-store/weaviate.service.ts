@@ -133,6 +133,44 @@ export class WeaviateService {
     }
 
     /**
+     * Retrieves documents via keyword BM25 scoring explicitly scaling text frequencies intrinsically.
+     * Maps the resulting structural confidence score into the standard 'distance' schema purely to maintain frontend interface conformities cleanly.
+     * @param query The user's exact keyword mapping string.
+     * @param topK The maximum limit of contextual chunks (default: 5).
+     */
+    static async keywordSearch(query: string, topK: number = 5): Promise<RetrievedChunk[]> {
+        if (!this.client) {
+            throw new Error("WeaviateService not initialized. Application boots must call initialize() primarily.");
+        }
+
+        try {
+            const collection = this.client.collections.get(WEAVIATE_CONFIG.COLLECTION_NAME);
+
+            // Execute the native BM25 syntactic query.
+            const result = await collection.query.bm25(query, {
+                limit: topK,
+                returnMetadata: ['score']
+            });
+
+            // Map and safely unpack the objects dynamically returning the cohesive schema back strictly. 
+            return result.objects.map(obj => ({
+                id: (obj.uuid || (obj as any).id) as string,
+                text: obj.properties.text as string,
+                metadata: {
+                    documentId: obj.properties.documentId as string,
+                    source: obj.properties.source as string | undefined,
+                    page: obj.properties.page as number | undefined,
+                    chunkIndex: obj.properties.chunkIndex as number,
+                    createdAt: obj.properties.createdAt as string | undefined
+                },
+                distance: obj.metadata?.score as number
+            }));
+        } catch (error: any) {
+            throw new Error(`Weaviate keyword BM25 search failed.\n\nDetails: ${error.message}`);
+        }
+    }
+
+    /**
      * Aggregates distinct structural documents mapped inherently within the bounds natively tracking active contexts.
      * Extracts exact mapping properties uniquely spanning IDs accurately matching UI requirements natively.
      */
