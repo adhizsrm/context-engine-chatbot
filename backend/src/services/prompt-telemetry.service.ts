@@ -1,5 +1,7 @@
 import { ConversationTurn } from './conversation-memory.service';
 import { PromptBuilder } from './prompt.builder';
+import { BudgetStats } from './token-budget.service';
+import { TokenEstimatorService } from './token-estimator.service';
 
 /**
  * Service dedicated exclusively to computing and reporting telemetry metrics about generated LLM prompts.
@@ -7,19 +9,10 @@ import { PromptBuilder } from './prompt.builder';
  */
 export class PromptTelemetryService {
     /**
-     * Safely checks the length of a string without throwing if it's undefined or null.
+     * Safely checks the length of a string without throwing on undefined or null values.
      */
     private static safeLength(str?: string): number {
         return str ? str.length : 0;
-    }
-
-    /**
-     * Estimates the token count of a prompt using a simple heuristic.
-     * Ready for replacement by actual tokenizer integrations (e.g. tiktoken) in future milestones.
-     */
-    private static estimateTokens(prompt: string): number {
-        if (!prompt) return 0;
-        return Math.ceil(prompt.length / 4);
     }
 
     /**
@@ -57,10 +50,10 @@ export class PromptTelemetryService {
 
         const finalPromptLength = this.safeLength(finalPrompt);
 
-        // Overhead includes system prompt, labels, spacing layers, wrappers natively.
+        // Overhead comprises instructions, boundaries, and formatting lines.
         const promptOverheadLength = Math.max(0, finalPromptLength - (historyLength + contextLength + queryLength));
 
-        const estimatedTokens = this.estimateTokens(finalPrompt);
+        const estimatedTokens = TokenEstimatorService.estimateTokens(finalPrompt);
 
         console.log("========== Prompt Statistics ==========");
         this.logStatisticLine("Conversation History", historyLength, finalPromptLength);
@@ -70,6 +63,22 @@ export class PromptTelemetryService {
         console.log(`Final Prompt         : ${finalPromptLength} chars`);
         console.log("");
         console.log(`Estimated Tokens     : ~${estimatedTokens}`);
-        console.log("=======================================");
+        console.log("=======================================\n");
+    }
+
+    /**
+     * Accurately details Configurable Token outputs mirroring diagnostic limits inherently tracing chunks.
+     */
+    static logTokenBudget(stats: BudgetStats): void {
+        console.log("========== Token Budget ==========");
+        console.log(`Configured Context Window : ${stats.configuredContextWindow}`);
+        console.log(`Reserved Output Tokens    : ${stats.reservedOutputTokens}`);
+        console.log(`Prompt Budget             : ${stats.promptBudget}`);
+        console.log(`Estimated Prompt Tokens   : ${stats.estimatedPromptTokens}`);
+        console.log(`Remaining Budget          : ${stats.remainingBudget}`);
+        console.log(`Chunks Evaluated          : ${stats.chunksEvaluated}`);
+        console.log(`Chunks Selected           : ${stats.chunksSelected}`);
+        console.log(`Chunks Discarded          : ${stats.chunksDiscarded}`);
+        console.log("=================================\n");
     }
 }

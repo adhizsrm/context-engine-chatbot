@@ -1,8 +1,11 @@
 import { LLMProvider } from '../providers/llm.provider.interface';
 import { PromptBuilder } from './prompt.builder';
 import { PromptTelemetryService } from './prompt-telemetry.service';
-import { APP_CONFIG } from '../config/app.config';
 import { ConversationTurn } from './conversation-memory.service';
+import { APP_CONFIG } from '../config/app.config';
+import { TokenBudgetService, BudgetStats } from './token-budget.service';
+import { TokenEstimatorService } from './token-estimator.service';
+import { RetrievedChunk } from '../types/chunk.types';
 
 export class ChatService {
     /**
@@ -17,12 +20,32 @@ export class ChatService {
      * @param history Previous sliding sequential map bounding explicit tracking natively.
      * @returns The generated model reasoning text natively resolved via explicitly injected Provider. 
      */
-    async generateResponse(query: string, context: string, history: ConversationTurn[] = []): Promise<string> {
+    async generateResponse(query: string, contextOrChunks: string | RetrievedChunk[], history: ConversationTurn[] = []): Promise<string> {
+        let finalContextText = "";
+        let budgetStats: BudgetStats | null = null;
+
+        if (Array.isArray(contextOrChunks)) {
+            // Determine prompt structure overhead before iterating chunks securely avoiding dependency coupling
+            const emptyPrompt = PromptBuilder.buildRagPrompt(query, "", history);
+            const overheadTokens = TokenEstimatorService.estimateTokens(emptyPrompt);
+
+            // Apply TokenBudget precisely resolving sizes explicitly preventing overflows
+            const budgetResult = TokenBudgetService.budgetChunks(contextOrChunks as RetrievedChunk[], overheadTokens);
+            finalContextText = budgetResult.selectedChunks.map(chunk => chunk.text).join("\n\n---\n\n");
+            budgetStats = budgetResult.stats;
+        } else {
+            // Safely preserves backward-compatibility natively mapping string fallbacks
+            finalContextText = contextOrChunks as string;
+        }
+
         // Step 1: Delegate string manipulation completely mapping to dedicated isolated Prompt layers 
-        const prompt = PromptBuilder.buildRagPrompt(query, context, history);
+        const prompt = PromptBuilder.buildRagPrompt(query, finalContextText, history);
 
         if (APP_CONFIG.DEBUG_MODE) {
-            PromptTelemetryService.logTelemetry(query, context, history, prompt);
+            PromptTelemetryService.logTelemetry(query, finalContextText, history, prompt);
+            if (budgetStats) {
+                PromptTelemetryService.logTokenBudget(budgetStats);
+            }
         }
         try {
             // Step 2: Decouple native LLM orchestration executing internally purely utilizing bound abstractions 

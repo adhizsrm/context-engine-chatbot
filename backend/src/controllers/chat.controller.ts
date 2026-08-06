@@ -28,23 +28,15 @@ export class ChatController {
             // Step 2: Retrieve tightly clustered semantic documents
             const retrievedChunks = await RetrievalService.retrieveContext(query);
 
-            // Aggregate raw textual objects safely into delimited strings for prompts
-            const contextText = retrievedChunks.map(chunk => chunk.text).join("\n\n---\n\n");
-
+            // Aggregation gracefully deferred downstream to the Services preserving thin HTTP layers natively
             if (APP_CONFIG.DEBUG_MODE) {
-                console.log("========== CONTEXT ==========");
-                console.log(`Context Length: ${contextText.length} characters`);
-                console.log(contextText.substring(0, 1000));
-
-                if (contextText.length > 1000) {
-                    console.log("... (truncated)");
-                }
-
-                console.log("=============================");
+                console.log("========== RETRIEVAL ==========");
+                console.log(`Chunks Retrieved: ${retrievedChunks.length}`);
+                console.log("===============================");
             }
 
-            // Step 3: Feed context explicitly against query bounds targeting generative arrays natively alongside mapped historic context perfectly.
-            const responseText = await this.chatService.generateResponse(query, contextText, history);
+            // Step 3: Feed explicit chunks bounds tightly targeting LLM mapping accurately deferring structural logic
+            const responseText = await this.chatService.generateResponse(query, retrievedChunks, history);
 
             // Step 4: Persist successful interaction intrinsically binding sliding window correctly organically tracking.
             ConversationMemoryService.addTurn('default-session', query, responseText);
