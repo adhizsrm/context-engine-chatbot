@@ -25,27 +25,17 @@ export class ChatController {
             // Step 1: Extract Prior Memory natively matching session mapping
             const history = ConversationMemoryService.getHistory('default-session');
 
-            // Step 2: Retrieve tightly clustered semantic documents
-            const retrievedChunks = await RetrievalService.retrieveContext(query);
+            // Step 2: Delegate complex downstream Retrieval, Rendering, and Prompting completely natively securely organically.
+            const ragResult = await this.chatService.executeRagWorkflow(query, history);
 
-            // Aggregation gracefully deferred downstream to the Services preserving thin HTTP layers natively
-            if (APP_CONFIG.DEBUG_MODE) {
-                console.log("========== RETRIEVAL ==========");
-                console.log(`Chunks Retrieved: ${retrievedChunks.length}`);
-                console.log("===============================");
-            }
+            // Step 3: Persist successful interaction intrinsically binding sliding window correctly organically tracking.
+            ConversationMemoryService.addTurn('default-session', query, ragResult.response);
 
-            // Step 3: Feed explicit chunks bounds tightly targeting LLM mapping accurately deferring structural logic
-            const responseText = await this.chatService.generateResponse(query, retrievedChunks, history);
-
-            // Step 4: Persist successful interaction intrinsically binding sliding window correctly organically tracking.
-            ConversationMemoryService.addTurn('default-session', query, responseText);
-
-            // Step 5: Serve strictly mapped telemetry response 
+            // Step 4: Serve strictly mapped telemetry response natively rendering gracefully mapping HTTP boundaries safely.
             res.status(200).json({
                 query,
-                response: responseText,
-                sources: retrievedChunks.map(chunk => ({
+                response: ragResult.response,
+                sources: ragResult.sources.map(chunk => ({
                     documentId: chunk.metadata.documentId,
                     page: chunk.metadata.page,
                     distance: chunk.distance

@@ -6,12 +6,32 @@ import { APP_CONFIG } from '../config/app.config';
 import { TokenBudgetService, BudgetStats } from './token-budget.service';
 import { TokenEstimatorService } from './token-estimator.service';
 import { RetrievedChunk } from '../types/chunk.types';
+import { QueryOptimizationService } from './query-optimization.service';
+import { RetrievalService } from './retrieval.service';
 
 export class ChatService {
     /**
      * Synthesizes isolated logic strictly binding dependency inject LLM structures mapped securely.
      */
     constructor(private provider: LLMProvider) { }
+
+    /**
+     * Orchestrates the complete RAG workflow internally explicitly safely tracking domains seamlessly natively!
+     * @param query The raw untouched explicitly natural user command natively.
+     * @param history Prior strings matching user conversational boundaries explicitly safely securely.
+     */
+    async executeRagWorkflow(query: string, history: ConversationTurn[]) {
+        // Step 1: Synthesize Incomplete Contexts precisely translating missing strings explicitly
+        const optimizedQuery = QueryOptimizationService.optimizeQuery(query, history);
+
+        // Step 2: Retrieve tightly clustered documents mimicking optimized translations natively
+        const retrievedChunks = await RetrievalService.retrieveContext(optimizedQuery);
+
+        // Step 3: Produce contextual strings identically mapping Original Query gracefully preserving backward bounds inherently mapping strings internally.
+        const responseText = await this.generateResponse(query, retrievedChunks, history);
+
+        return { response: responseText, sources: retrievedChunks };
+    }
 
     /**
      * Generates a conversational LLM response using strictly injected structural retrieved contexts natively.
