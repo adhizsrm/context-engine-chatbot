@@ -1,5 +1,6 @@
 import { LLMProvider } from '../providers/llm.provider.interface';
 import { PromptBuilder } from './prompt.builder';
+import { PromptTelemetryService } from './prompt-telemetry.service';
 import { APP_CONFIG } from '../config/app.config';
 import { ConversationTurn } from './conversation-memory.service';
 
@@ -21,9 +22,7 @@ export class ChatService {
         const prompt = PromptBuilder.buildRagPrompt(query, context, history);
 
         if (APP_CONFIG.DEBUG_MODE) {
-            console.log("========== PROMPT ==========");
-            console.log(prompt);
-            console.log("============================");
+            PromptTelemetryService.logTelemetry(query, context, history, prompt);
         }
         try {
             // Step 2: Decouple native LLM orchestration executing internally purely utilizing bound abstractions 

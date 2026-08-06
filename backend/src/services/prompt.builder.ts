@@ -5,6 +5,16 @@ import { ConversationTurn } from './conversation-memory.service';
  * isolating lengthy string prompts totally separate from actual programmatic logic securely.
  */
 export class PromptBuilder {
+    static formatHistory(history: ConversationTurn[] = []): string {
+        if (!history || history.length === 0) return "";
+
+        let historyStr = "Previous Conversation\n\n";
+        history.forEach(turn => {
+            historyStr += `User:\n${turn.userQuery}\n\nAssistant:\n${turn.assistantResponse}\n\n`;
+        });
+        return historyStr;
+    }
+
     /**
      * Constructs the strict, unyielding system boundaries required for RAG validation reliably blocking external scopes.
      * @param query Native user query explicitly unmodified.
@@ -13,14 +23,7 @@ export class PromptBuilder {
      * @returns Safe context generation pipeline prompt.
      */
     static buildRagPrompt(query: string, context: string, history: ConversationTurn[] = []): string {
-        let historyStr = "";
-
-        if (history.length > 0) {
-            historyStr = "Previous Conversation\n\n";
-            history.forEach(turn => {
-                historyStr += `User:\n${turn.userQuery}\n\nAssistant:\n${turn.assistantResponse}\n\n`;
-            });
-        }
+        const historyStr = this.formatHistory(history);
 
         return `You are a highly helpful and precise assistant. 
 You will answer the user's question based strictly and exclusively on the following provided context. 
