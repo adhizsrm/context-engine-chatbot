@@ -8,6 +8,8 @@ import { TokenEstimatorService } from './token-estimator.service';
 import { RetrievedChunk } from '../types/chunk.types';
 import { QueryOptimizationService } from './query-optimization.service';
 import { RetrievalService } from './retrieval.service';
+import { ExponentialDecayService } from './exponential-decay.service';
+import { Logger } from '../utils/logger';
 
 export class ChatService {
     /**
@@ -27,8 +29,11 @@ export class ChatService {
         // Step 2: Retrieve tightly clustered documents mimicking optimized translations natively
         const retrievedChunks = await RetrievalService.retrieveContext(optimizedQuery);
 
-        // Step 3: Produce contextual strings identically mapping Original Query gracefully preserving backward bounds inherently mapping strings internally.
-        const responseText = await this.generateResponse(query, retrievedChunks, history);
+        // Step 3: Implement mathematical bounds explicitly mapping subset history natively matching Prompt capabilities seamlessly
+        const decayedHistory = ExponentialDecayService.applyDecay(history);
+
+        // Step 4: Produce contextual strings identically mapping Original Query gracefully preserving backward bounds inherently mapping strings internally.
+        const responseText = await this.generateResponse(query, retrievedChunks, decayedHistory);
 
         return { response: responseText, sources: retrievedChunks };
     }
@@ -66,6 +71,11 @@ export class ChatService {
             if (budgetStats) {
                 PromptTelemetryService.logTokenBudget(budgetStats);
             }
+            Logger.log(`
+                ========== FINAL PROMPT ==========
+                ${prompt}
+                ==================================
+`);
         }
         try {
             // Step 2: Decouple native LLM orchestration executing internally purely utilizing bound abstractions 

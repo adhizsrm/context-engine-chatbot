@@ -3,6 +3,7 @@ import { WEAVIATE_CONFIG } from '../config/weaviate.config';
 import { EmbeddedChunk } from '../types/embedding.types';
 import { RetrievedChunk } from '../types/chunk.types';
 import { Logger } from '../utils/logger';
+import { APP_CONFIG } from '../config/app.config';
 
 export class WeaviateService {
     private static client: WeaviateClient;
@@ -101,7 +102,7 @@ export class WeaviateService {
      * @param topK The maximum number of contextual chunks to retrieve (default: 5).
      * @returns An array of structurally cohesive RetrievedChunk objects.
      */
-    static async search(queryVector: number[], topK: number = 5): Promise<RetrievedChunk[]> {
+    static async search(queryVector: number[], topK: number = APP_CONFIG.RETRIEVAL_TOP_K): Promise<RetrievedChunk[]> {
         if (!this.client) {
             throw new Error("WeaviateService not initialized. Application boots must call initialize() primarily.");
         }
@@ -141,7 +142,7 @@ export class WeaviateService {
      * @param query The user's exact keyword mapping string.
      * @param topK The maximum limit of contextual chunks (default: 5).
      */
-    static async keywordSearch(query: string, topK: number = 5): Promise<RetrievedChunk[]> {
+    static async keywordSearch(query: string, topK: number = APP_CONFIG.RETRIEVAL_TOP_K): Promise<RetrievedChunk[]> {
         if (!this.client) {
             throw new Error("WeaviateService not initialized. Application boots must call initialize() primarily.");
         }

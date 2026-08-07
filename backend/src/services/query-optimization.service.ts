@@ -7,31 +7,53 @@ import { Logger } from '../utils/logger';
  * resolving Pronouns seamlessly natively securely.
  */
 export class QueryOptimizationService {
-    private static readonly FOLLOW_UP_INDICATORS = [
-        "explain that",
+    private static readonly STANDALONE_PHRASES = [
+        "explain it again",
         "tell me more",
-        "what about",
+        "continue",
         "can you elaborate",
+        "what about that",
+        "and this",
+        "what does that mean",
+        "explain that",
         "why",
         "how",
         "with an example",
-        "continue",
-        "and this",
-        "what does that mean"
+        "can you explain it",
+        "explain it",
+        "how does that work",
+        "how does it work"
     ];
 
     /**
-     * Determines whether a query is likely a contextual follow-up organically querying explicitly.
+     * Determines whether a query is essentially a standalone follow-up incapable of resolving outside contexts natively natively organically cleanly cleanly responsibly organically natively organically smoothly natively.
      */
-    private static isFollowUp(query: string): boolean {
-        const lowerQuery = query.toLowerCase();
+    private static isStandaloneFollowUp(query: string): boolean {
+        const lower = query.toLowerCase();
 
-        // Exact trailing heuristics commonly implying contextual bounds:
-        if (lowerQuery.includes("it") || lowerQuery.includes("that") || lowerQuery.includes("this")) {
+        // 1. Multiple sentences inherently introduces specific localized contextual tracking organically natively
+        const sentences = query.split(/(?<=[.?!])\s+/).filter(s => s.trim().length > 0);
+        if (sentences.length > 1) return false;
+
+        // 2. WH-question strictly targeting declarative extraction natively natively!
+        const newSubjectRegex = /^(what|who|where|how|why)\s+(is|are|does|do|can|could|will|would)\s+(?!it\b|this\b|that\b|there\b|he\b|she\b)/i;
+        if (newSubjectRegex.test(lower)) return false;
+
+        // 3. Exact matching universally identical isolated traces accurately mapping arrays natively identically cleanly organically flawlessly gracefully natively safely correctly
+        const cleanQuery = lower.replace(/[^a-z\s]/g, '').trim();
+        if (this.STANDALONE_PHRASES.includes(cleanQuery)) {
             return true;
         }
 
-        return this.FOLLOW_UP_INDICATORS.some(indicator => lowerQuery.includes(indicator));
+        // 4. Safely explicitly trace pronouns within short lexical strings statically safely cleanly organically safely flawlessly gracefully natively safely securely reliably organically authentically
+        const wordCount = lower.split(/\s+/).length;
+        const hasPronoun = /\b(it|this|that)\b/.test(lower);
+
+        if (hasPronoun && wordCount <= 8) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -53,10 +75,10 @@ export class QueryOptimizationService {
             return query;
         }
 
-        const isLikelyFollowUp = this.isFollowUp(query);
+        const isStandalone = this.isStandaloneFollowUp(query);
         let optimizedQuery = query;
 
-        if (isLikelyFollowUp) {
+        if (isStandalone) {
             const lastTurn = history[history.length - 1];
             const topic = this.extractTopic(lastTurn.userQuery);
 
@@ -76,11 +98,16 @@ export class QueryOptimizationService {
         }
 
         if (APP_CONFIG.DEBUG_MODE) {
+            const reason = isStandalone
+                ? "Standalone follow-up"
+                : "New subject detected - optimization skipped";
+
             Logger.log([
                 "========== Query Optimization ==========",
                 `Original Query:\n${query}`,
                 `Optimized Query:\n${optimizedQuery}`,
-                `Optimization Applied:\n${isLikelyFollowUp ? 'Yes' : 'No'}`,
+                `Optimization Applied:\n${isStandalone ? 'Yes' : 'No'}`,
+                `Reason:\n${reason}`,
                 "========================================"
             ].join('\n\n'));
         }

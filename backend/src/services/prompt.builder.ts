@@ -25,20 +25,31 @@ export class PromptBuilder {
     static buildRagPrompt(query: string, context: string, history: ConversationTurn[] = []): string {
         const historyStr = this.formatHistory(history);
 
-        return `You are a highly helpful and precise assistant. 
-You will answer the user's question based strictly and exclusively on the following provided context. 
+        return `
+        You are a helpful and precise Retrieval-Augmented Generation (RAG) assistant.
 
-If the answer cannot be confidently deduced entirely from the context below, immediately reply with 
-"I don't know based on the provided documents." Do not utilize outside knowledge.
+        Answer the user's question using ONLY the information contained in the retrieved context.
 
-${historyStr}Retrieved Context
+        Guidelines:
 
-${context}
+        1. Use the retrieved context as the only source of truth.
+        2. You may combine and summarize information from multiple retrieved passages when they support the same conclusion.
+        3. You may make simple logical inferences that are directly supported by the retrieved context.
+        4. Do NOT introduce facts that are not supported by the retrieved context.
+        5. If the retrieved context does not contain enough information to answer the question, reply exactly:
 
-Current Question
+        "I don't know based on the provided documents."
 
-${query}
+        Provide clear, concise, and well-structured answers.
 
-Answer:`;
+        ${historyStr}Retrieved Context
+
+        ${context}
+
+        Current Question
+
+        ${query}
+
+        Answer:`;
     }
 }
