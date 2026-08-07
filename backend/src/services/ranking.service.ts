@@ -1,5 +1,6 @@
 import { RetrievedChunk } from '../types/chunk.types';
 import { APP_CONFIG } from '../config/app.config';
+import { Logger } from '../utils/logger';
 
 // ---------------------------------------------------------
 // Heuristic Weight Constants
@@ -81,27 +82,35 @@ export class RankingService {
         final: RetrievedChunk[],
         topK: number
     ): void {
-        // Helper formatter scrubbing chaotic newlines explicitly natively 
         const formatPreview = (text: string) => text.replace(/\s+/g, ' ').substring(0, 120) + '...';
 
-        console.log("\n========== Re-ranking ==========");
+        const lines = [
+            "========== Re-ranking ==========",
+            "Original Retrieval Order:"
+        ];
 
-        console.log("Original Retrieval Order:");
         original.forEach((c, idx) => {
             const correspondingScore = mapped[idx].rerankScore;
-            console.log(`  [Rank ${idx + 1}] ID: ${c.id} | Index: ${c.metadata.chunkIndex} | Source: ${c.retrievalSource}`);
-            console.log(`    -> Semantic Dist: ${c.semanticDistance?.toFixed(4) || 'N/A'} | Keyword Score: ${c.keywordScore?.toFixed(4) || 'N/A'} | Final Score: ${correspondingScore?.toFixed(4)}`);
-            console.log(`    -> Preview: "${formatPreview(c.text)}"`);
+            lines.push(
+                `  [Rank ${idx + 1}] ID: ${c.id} | Index: ${c.metadata.chunkIndex} | Source: ${c.retrievalSource}\n` +
+                `    -> Semantic Dist: ${c.semanticDistance?.toFixed(4) || 'N/A'} | Keyword Score: ${c.keywordScore?.toFixed(4) || 'N/A'} | Final Score: ${correspondingScore?.toFixed(4)}\n` +
+                `    -> Preview: "${formatPreview(c.text)}"`
+            );
         });
 
-        console.log("\nFinal Ranked Order:");
-        console.log(`Selected Top ${topK} Chunks`);
+        lines.push("");
+        lines.push("Final Ranked Order:");
+        lines.push(`Selected Top ${topK} Chunks`);
+
         final.forEach((c, idx) => {
-            console.log(`  [Rank ${idx + 1}] ID: ${c.id} | Source: ${c.retrievalSource}`);
-            console.log(`    -> Semantic Dist: ${c.semanticDistance?.toFixed(4) || 'N/A'} | Keyword Score: ${c.keywordScore?.toFixed(4) || 'N/A'} | Final Score: ${c.rerankScore?.toFixed(4)}`);
-            console.log(`    -> Preview: "${formatPreview(c.text)}"`);
+            lines.push(
+                `  [Rank ${idx + 1}] ID: ${c.id} | Source: ${c.retrievalSource}\n` +
+                `    -> Semantic Dist: ${c.semanticDistance?.toFixed(4) || 'N/A'} | Keyword Score: ${c.keywordScore?.toFixed(4) || 'N/A'} | Final Score: ${c.rerankScore?.toFixed(4)}\n` +
+                `    -> Preview: "${formatPreview(c.text)}"`
+            );
         });
 
-        console.log("================================\n");
+        lines.push("================================");
+        Logger.log(lines.join('\n'));
     }
 }

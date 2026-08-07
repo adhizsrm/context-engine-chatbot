@@ -1,5 +1,6 @@
 import { ConversationTurn } from './conversation-memory.service';
 import { APP_CONFIG } from '../config/app.config';
+import { Logger } from '../utils/logger';
 
 /**
  * Deterministic semantic analysis translating incomplete queries natively mapping contextual topics
@@ -75,11 +76,13 @@ export class QueryOptimizationService {
         }
 
         if (APP_CONFIG.DEBUG_MODE) {
-            console.log("========== Query Optimization ==========");
-            console.log(`Original Query: \n${query}`);
-            console.log(`Optimized Query: \n${optimizedQuery}`);
-            console.log(`Optimization Applied: \n${isLikelyFollowUp ? 'Yes' : 'No'}`);
-            console.log("========================================\n");
+            Logger.log([
+                "========== Query Optimization ==========",
+                `Original Query:\n${query}`,
+                `Optimized Query:\n${optimizedQuery}`,
+                `Optimization Applied:\n${isLikelyFollowUp ? 'Yes' : 'No'}`,
+                "========================================"
+            ].join('\n\n'));
         }
 
         return optimizedQuery;

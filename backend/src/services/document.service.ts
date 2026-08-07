@@ -5,6 +5,7 @@ import { EmbeddingService } from '../embeddings/embedding.service';
 import { WeaviateService } from '../vector-store/weaviate.service';
 import { EmbeddedChunk } from '../types/embedding.types';
 import { APP_CONFIG } from '../config/app.config';
+import { Logger } from '../utils/logger';
 import path from 'path';
 
 export interface IngestionMetrics {
@@ -45,10 +46,12 @@ export class DocumentService {
         await WeaviateService.store(embeddedChunks);
 
         if (APP_CONFIG.DEBUG_MODE) {
-            console.log("========== Persistence Debug ==========");
-            console.log(`Document Root Instantiated: ${documentId}`);
-            console.log(`Successfully batched and saved ${embeddedChunks.length} embedded chunks into Vector DB.`);
-            console.log("=======================================");
+            Logger.log([
+                "========== Persistence Debug ==========",
+                `Document Root Instantiated: ${documentId}`,
+                `Successfully batched and saved ${embeddedChunks.length} embedded chunks into Vector DB.`,
+                "======================================="
+            ].join('\n\n'));
         }
 
         return {

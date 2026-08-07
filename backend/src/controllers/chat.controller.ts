@@ -3,6 +3,7 @@ import { RetrievalService } from '../services/retrieval.service';
 import { ChatService } from '../services/chat.service';
 import { ConversationMemoryService } from '../services/conversation-memory.service';
 import { APP_CONFIG } from '../config/app.config';
+import { Logger } from '../utils/logger';
 
 export class ChatController {
     /**

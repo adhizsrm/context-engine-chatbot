@@ -2,6 +2,7 @@ import { ConversationTurn } from './conversation-memory.service';
 import { PromptBuilder } from './prompt.builder';
 import { BudgetStats } from './token-budget.service';
 import { TokenEstimatorService } from './token-estimator.service';
+import { Logger } from '../utils/logger';
 
 /**
  * Service dedicated exclusively to computing and reporting telemetry metrics about generated LLM prompts.
@@ -27,9 +28,9 @@ export class PromptTelemetryService {
     /**
      * Reusable logging for each line of telemetry statistics.
      */
-    private static logStatisticLine(label: string, length: number, totalLength: number): void {
+    private static logStatisticLine(lines: string[], label: string, length: number, totalLength: number): void {
         const percentage = this.calculatePercentage(length, totalLength);
-        console.log(`${label.padEnd(20, ' ')} : ${length} chars ${percentage}`);
+        lines.push(`${label.padEnd(20, ' ')} : ${length} chars ${percentage}`);
     }
 
     /**
@@ -55,30 +56,37 @@ export class PromptTelemetryService {
 
         const estimatedTokens = TokenEstimatorService.estimateTokens(finalPrompt);
 
-        console.log("========== Prompt Statistics ==========");
-        this.logStatisticLine("Conversation History", historyLength, finalPromptLength);
-        this.logStatisticLine("Retrieved Context", contextLength, finalPromptLength);
-        this.logStatisticLine("Current Question", queryLength, finalPromptLength);
-        this.logStatisticLine("Prompt Overhead", promptOverheadLength, finalPromptLength);
-        console.log(`Final Prompt         : ${finalPromptLength} chars`);
-        console.log("");
-        console.log(`Estimated Tokens     : ~${estimatedTokens}`);
-        console.log("=======================================\n");
+        const lines = [
+            "========== Prompt Statistics =========="
+        ];
+        this.logStatisticLine(lines, "Conversation History", historyLength, finalPromptLength);
+        this.logStatisticLine(lines, "Retrieved Context", contextLength, finalPromptLength);
+        this.logStatisticLine(lines, "Current Question", queryLength, finalPromptLength);
+        this.logStatisticLine(lines, "Prompt Overhead", promptOverheadLength, finalPromptLength);
+        lines.push(`Final Prompt         : ${finalPromptLength} chars`);
+        lines.push("");
+        lines.push(`Estimated Tokens     : ~${estimatedTokens}`);
+        lines.push("=======================================");
+
+        Logger.log(lines.join('\n'));
     }
 
     /**
      * Accurately details Configurable Token outputs mirroring diagnostic limits inherently tracing chunks.
      */
     static logTokenBudget(stats: BudgetStats): void {
-        console.log("========== Token Budget ==========");
-        console.log(`Configured Context Window : ${stats.configuredContextWindow}`);
-        console.log(`Reserved Output Tokens    : ${stats.reservedOutputTokens}`);
-        console.log(`Prompt Budget             : ${stats.promptBudget}`);
-        console.log(`Estimated Prompt Tokens   : ${stats.estimatedPromptTokens}`);
-        console.log(`Remaining Budget          : ${stats.remainingBudget}`);
-        console.log(`Chunks Evaluated          : ${stats.chunksEvaluated}`);
-        console.log(`Chunks Selected           : ${stats.chunksSelected}`);
-        console.log(`Chunks Discarded          : ${stats.chunksDiscarded}`);
-        console.log("=================================\n");
+        const lines = [
+            "========== Token Budget ==========",
+            `Configured Context Window : ${stats.configuredContextWindow}`,
+            `Reserved Output Tokens    : ${stats.reservedOutputTokens}`,
+            `Prompt Budget             : ${stats.promptBudget}`,
+            `Estimated Prompt Tokens   : ${stats.estimatedPromptTokens}`,
+            `Remaining Budget          : ${stats.remainingBudget}`,
+            `Chunks Evaluated          : ${stats.chunksEvaluated}`,
+            `Chunks Selected           : ${stats.chunksSelected}`,
+            `Chunks Discarded          : ${stats.chunksDiscarded}`,
+            "================================="
+        ];
+        Logger.log(lines.join('\n'));
     }
 }

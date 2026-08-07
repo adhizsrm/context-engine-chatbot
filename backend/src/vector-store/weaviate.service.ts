@@ -2,6 +2,7 @@ import weaviate, { WeaviateClient } from 'weaviate-client';
 import { WEAVIATE_CONFIG } from '../config/weaviate.config';
 import { EmbeddedChunk } from '../types/embedding.types';
 import { RetrievedChunk } from '../types/chunk.types';
+import { Logger } from '../utils/logger';
 
 export class WeaviateService {
     private static client: WeaviateClient;
@@ -27,14 +28,14 @@ export class WeaviateService {
             const collectionExists = await this.client.collections.exists(WEAVIATE_CONFIG.COLLECTION_NAME);
 
             if (!collectionExists) {
-                console.log(`[Weaviate] Collection '${WEAVIATE_CONFIG.COLLECTION_NAME}' not found. Creating it...`);
+                Logger.log(`[Weaviate] Collection '${WEAVIATE_CONFIG.COLLECTION_NAME}' not found. Creating it...`);
                 // Create a basic collection layout 
                 await this.client.collections.create({
                     name: WEAVIATE_CONFIG.COLLECTION_NAME,
                 });
-                console.log(`[Weaviate] Collection '${WEAVIATE_CONFIG.COLLECTION_NAME}' created successfully.`);
+                Logger.log(`[Weaviate] Collection '${WEAVIATE_CONFIG.COLLECTION_NAME}' created successfully.`);
             } else {
-                console.log(`[Weaviate] Collection '${WEAVIATE_CONFIG.COLLECTION_NAME}' is ready.`);
+                Logger.log(`[Weaviate] Collection '${WEAVIATE_CONFIG.COLLECTION_NAME}' is ready.`);
             }
         } catch (error: any) {
             throw new Error(`Failed to initialize Weaviate connection. Ensure Weaviate is running at ${WEAVIATE_CONFIG.URL}.\nDetails: ${error.message}`);
@@ -231,6 +232,6 @@ export class WeaviateService {
                 deletedCount++;
             }
         }
-        console.log(`[Weaviate] Successfully purged ${deletedCount} chunks across bounds mapped to Document: ${documentId}`);
+        Logger.log(`[Weaviate] Successfully purged ${deletedCount} chunks across bounds mapped to Document: ${documentId}`);
     }
 }
