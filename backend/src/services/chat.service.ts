@@ -9,6 +9,7 @@ import { RetrievedChunk } from '../types/chunk.types';
 import { QueryOptimizationService } from './query-optimization.service';
 import { RetrievalService } from './retrieval.service';
 import { ExponentialDecayService } from './exponential-decay.service';
+import { ConversationSummaryService } from './conversation-summary.service';
 import { Logger } from '../utils/logger';
 
 export class ChatService {
@@ -35,7 +36,10 @@ export class ChatService {
         // Step 4: Produce contextual strings identically mapping Original Query gracefully preserving backward bounds inherently mapping strings internally.
         const responseText = await this.generateResponse(query, retrievedChunks, decayedHistory);
 
-        return { response: responseText, sources: retrievedChunks };
+        // Step 5: Compress generative text saving Memory limits heavily seamlessly encapsulating algorithms beautifully inherently safely natively cleanly efficiently.
+        const compressedSummary = ConversationSummaryService.summarize(responseText);
+
+        return { response: responseText, summary: compressedSummary, sources: retrievedChunks };
     }
 
     /**

@@ -29,8 +29,8 @@ export class ChatController {
             // Step 2: Delegate complex downstream Retrieval, Rendering, and Prompting completely natively securely organically.
             const ragResult = await this.chatService.executeRagWorkflow(query, history);
 
-            // Step 3: Persist successful interaction intrinsically binding sliding window correctly organically tracking.
-            ConversationMemoryService.addTurn('default-session', query, ragResult.response);
+            // Step 3: Persist successful compressed interaction intrinsically binding sliding window correctly organically tracking.
+            ConversationMemoryService.addTurn('default-session', query, ragResult.summary);
 
             // Step 4: Serve strictly mapped telemetry response natively rendering gracefully mapping HTTP boundaries safely.
             res.status(200).json({
