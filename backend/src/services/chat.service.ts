@@ -33,6 +33,24 @@ export class ChatService {
         // Step 3: Implement mathematical bounds explicitly mapping subset history natively matching Prompt capabilities seamlessly
         const decayedHistory = ExponentialDecayService.applyDecay(history);
 
+        if (APP_CONFIG.DEBUG_MODE) {
+            const formatPreview = (text: string) => text.replace(/\s+/g, ' ').substring(0, 50);
+
+            const debugLines: string[] = [];
+            debugLines.push("========== Conversation Context ==========");
+            debugLines.push(`History Before Decay : ${history.length} turns`);
+            debugLines.push(`History After Decay  : ${decayedHistory.length} turns\n`);
+
+            decayedHistory.forEach((turn, index) => {
+                debugLines.push(`Conversation ${index + 1}`);
+                debugLines.push(`User: "${formatPreview(turn.userQuery)}..."`);
+                debugLines.push(`Assistant Context: "${formatPreview(turn.assistantResponse)}..."`);
+                debugLines.push(`Assistant Context Length: ${turn.assistantResponse.length} chars\n`);
+            });
+            debugLines.push("==========================================");
+            Logger.log(debugLines.join('\n'));
+        }
+
         // Step 4: Produce contextual strings identically mapping Original Query gracefully preserving backward bounds inherently mapping strings internally.
         const responseText = await this.generateResponse(query, retrievedChunks, decayedHistory);
 

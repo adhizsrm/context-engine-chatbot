@@ -1,4 +1,5 @@
 import { APP_CONFIG } from '../config/app.config';
+import { Logger } from '../utils/logger';
 
 export interface ConversationTurn {
     userQuery: string;
@@ -45,14 +46,18 @@ export class ConversationMemoryService {
         if (APP_CONFIG.DEBUG_MODE) {
             const formatPreview = (text: string) => text.replace(/\s+/g, ' ').substring(0, 100);
 
-            console.log("\n========== Conversation Memory ==========");
-            console.log(`Current Session: ${sessionId}`);
-            console.log(`Conversation Count: ${history.length} / ${this.MAX_TURNS}`);
-            console.log("Recent Conversation:");
-            console.log(`  User: "${formatPreview(userQuery)}..."`);
-            console.log(`  Assistant: "${formatPreview(assistantResponse)}..."`);
-            console.log("Conversation Inserted Into Prompt (Available for next turn explicitly).");
-            console.log("========================================\n");
+            const debugLines: string[] = [
+                "========== Conversation Memory ==========",
+                `Current Session: ${sessionId}`,
+                `Conversation Count: ${history.length} / ${this.MAX_TURNS}`,
+                "Recent Conversation:",
+                `  User: "${formatPreview(userQuery)}..."`,
+                `  Assistant: "${formatPreview(assistantResponse)}..."`,
+                "Conversation Stored In Memory",
+                "======================================="
+            ];
+
+            Logger.log(debugLines.join('\n'));
         }
     }
 

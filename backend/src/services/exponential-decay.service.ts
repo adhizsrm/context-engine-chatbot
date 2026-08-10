@@ -21,10 +21,6 @@ export class ExponentialDecayService {
 
         this.validateConfiguration(decayFactor, decayThreshold);
 
-        if (APP_CONFIG.DEBUG_MODE) {
-            this.logDecayStatistics(history, decayFactor, decayThreshold, historyLength);
-        }
-
         const filteredHistory: ConversationTurn[] = [];
 
         // Generate purely chronological filtered list securely delegating gracefully towards Prompt mapping
@@ -36,6 +32,10 @@ export class ExponentialDecayService {
             if (decayScore >= decayThreshold) {
                 filteredHistory.push(conversationTurn);
             }
+        }
+
+        if (APP_CONFIG.DEBUG_MODE) {
+            this.logDecayStatistics(history, filteredHistory, decayFactor, decayThreshold, historyLength);
         }
 
         return filteredHistory;
@@ -70,11 +70,13 @@ export class ExponentialDecayService {
     /**
      * Handles output Diagnostics gracefully mapping Native Log capabilities cleanly exclusively protecting operational flows natively!
      */
-    private static logDecayStatistics(history: ConversationTurn[], decayFactor: number, decayThreshold: number, historyLength: number): void {
+    private static logDecayStatistics(history: ConversationTurn[], filteredHistory: ConversationTurn[], decayFactor: number, decayThreshold: number, historyLength: number): void {
         const debugLines: string[] = [];
         debugLines.push("========== Exponential Decay ==========");
-        debugLines.push(`Decay Factor : ${decayFactor.toFixed(2)}`);
-        debugLines.push(`Threshold    : ${decayThreshold.toFixed(2)}\n`);
+        debugLines.push(`Decay Factor          : ${decayFactor.toFixed(2)}`);
+        debugLines.push(`Threshold             : ${decayThreshold.toFixed(2)}`);
+        debugLines.push(`Turns Before Decay    : ${historyLength}`);
+        debugLines.push(`Turns After Decay     : ${filteredHistory.length}\n`);
 
         // Log mathematically backwards (Newest to Oldest) securely natively cleanly cleanly organically gracefully
         let logCount = 1;
@@ -90,7 +92,7 @@ export class ExponentialDecayService {
 
             logCount++;
         }
-        debugLines.push("======================================");
+        debugLines.push("=======================================");
         Logger.log(debugLines.join('\n'));
     }
 }
