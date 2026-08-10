@@ -62,6 +62,12 @@ export class OpenRouterProvider implements LLMProvider {
             if (error.message.includes('OpenRouter API Error')) {
                 throw error;
             }
+
+            console.error("========== OpenRouter Error ==========");
+            console.error("Name   :", error?.name);
+            console.error("Message:", error?.message);
+            console.error("Cause  :", error?.cause);
+            console.error("======================================");
             throw new Error(`OpenRouter Text Generation Failed.\nDetails: ${error.message}`);
         }
     }

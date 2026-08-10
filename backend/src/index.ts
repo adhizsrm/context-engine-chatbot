@@ -25,10 +25,18 @@ const port = process.env.PORT || 3000;
 app.use(cors({ origin: 'http://localhost:5173' }));
 app.use(express.json());
 
+app.get('/health', (_req: Request, res: Response) => {
+  res.status(200).json({ status: 'ok' });
+});
 // Routes
 app.use('/api', uploadRoutes); // Contains /upload ... could be restructured internally
 app.use('/api/chat', chatRoutes);
 app.use('/api/documents', documentRoutes);
+
+app.use((req: Request, res: Response, next) => {
+  console.log(`[REQUEST] ${req.method} ${req.url}`);
+  next();
+});
 
 // Simple root route
 app.get('/', (req: Request, res: Response) => {
