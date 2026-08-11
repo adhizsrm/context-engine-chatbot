@@ -72,11 +72,11 @@ export class ExponentialDecayService {
      */
     private static logDecayStatistics(history: ConversationTurn[], filteredHistory: ConversationTurn[], decayFactor: number, decayThreshold: number, historyLength: number): void {
         const debugLines: string[] = [];
-        debugLines.push("========== Exponential Decay ==========");
-        debugLines.push(`Decay Factor          : ${decayFactor.toFixed(2)}`);
-        debugLines.push(`Threshold             : ${decayThreshold.toFixed(2)}`);
-        debugLines.push(`Turns Before Decay    : ${historyLength}`);
-        debugLines.push(`Turns After Decay     : ${filteredHistory.length}\n`);
+        debugLines.push("========== EXPONENTIAL DECAY ==========");
+        debugLines.push(`Decay Factor       : ${decayFactor.toFixed(2)}`);
+        debugLines.push(`Threshold          : ${decayThreshold.toFixed(2)}`);
+        debugLines.push(`Turns Before Decay : ${historyLength}`);
+        debugLines.push(`Turns After Decay  : ${filteredHistory.length}\n`);
 
         // Log mathematically backwards (Newest to Oldest) securely natively cleanly cleanly organically gracefully
         let logCount = 1;

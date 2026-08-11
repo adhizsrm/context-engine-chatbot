@@ -2,6 +2,7 @@ import { ConversationTurn } from './conversation-memory.service';
 import { PromptBuilder } from './prompt.builder';
 import { BudgetStats } from './token-budget.service';
 import { TokenEstimatorService } from './token-estimator.service';
+import { APP_CONFIG } from '../config/app.config';
 import { Logger } from '../utils/logger';
 
 /**
@@ -57,7 +58,7 @@ export class PromptTelemetryService {
         const estimatedTokens = TokenEstimatorService.estimateTokens(finalPrompt);
 
         const lines = [
-            "========== Prompt Statistics =========="
+            "========== PROMPT STATISTICS =========="
         ];
         this.logStatisticLine(lines, "Conversation History", historyLength, finalPromptLength);
         this.logStatisticLine(lines, "Retrieved Context", contextLength, finalPromptLength);
@@ -66,7 +67,49 @@ export class PromptTelemetryService {
         lines.push(`Final Prompt         : ${finalPromptLength} chars`);
         lines.push("");
         lines.push(`Estimated Tokens     : ~${estimatedTokens}`);
-        lines.push("=======================================");
+        lines.push("========================================");
+
+        Logger.log(lines.join('\n'));
+    }
+
+    /**
+     * Reusable string trimmer extracting explicit limits dynamically trailing offsets properly securely seamlessly natively completely structurally effectively nicely.
+     */
+    private static createPreview(text: string | undefined): string {
+        const maxLength = APP_CONFIG.PROMPT_PREVIEW_LENGTH;
+        if (!text) return "";
+        const normalized = text.trim();
+        if (normalized.length <= maxLength) return `"${normalized}"`;
+
+        const previewText = normalized.substring(0, maxLength);
+        const remaining = normalized.length - maxLength;
+
+        return `"${previewText}..." [remaining characters: ${remaining.toLocaleString()}]`;
+    }
+
+    /**
+     * Strictly exposes internal components exactly routing isolated truncated views mapping inherently flawlessly safely gracefully structurally correctly cleanly seamlessly gracefully gently accurately effectively gently beautifully smoothly beautifully nicely.
+     */
+    static logPromptPreview(query: string, context: string, history: ConversationTurn[], systemPrompt: string): void {
+        const formattedHistory = PromptBuilder.formatHistory(history);
+
+        const lines = [
+            "========== PROMPT CONTEXT PREVIEW ==========",
+            "",
+            "SYSTEM PROMPT",
+            this.createPreview(systemPrompt),
+            "",
+            "CONVERSATION HISTORY",
+            this.createPreview(formattedHistory) || "None",
+            "",
+            "RETRIEVED CONTEXT",
+            this.createPreview(context),
+            "",
+            "CURRENT QUERY",
+            this.createPreview(query),
+            "",
+            "============================================="
+        ];
 
         Logger.log(lines.join('\n'));
     }
@@ -76,16 +119,17 @@ export class PromptTelemetryService {
      */
     static logTokenBudget(stats: BudgetStats): void {
         const lines = [
-            "========== Token Budget ==========",
-            `Configured Context Window : ${stats.configuredContextWindow}`,
-            `Reserved Output Tokens    : ${stats.reservedOutputTokens}`,
-            `Prompt Budget             : ${stats.promptBudget}`,
-            `Estimated Prompt Tokens   : ${stats.estimatedPromptTokens}`,
-            `Remaining Budget          : ${stats.remainingBudget}`,
-            `Chunks Evaluated          : ${stats.chunksEvaluated}`,
-            `Chunks Selected           : ${stats.chunksSelected}`,
-            `Chunks Discarded          : ${stats.chunksDiscarded}`,
-            "================================="
+            "========== TOKEN BUDGET ==========",
+            `Context Window       : ${stats.configuredContextWindow}`,
+            `Reserved Output      : ${stats.reservedOutputTokens}`,
+            `Prompt Budget        : ${stats.promptBudget}`,
+            `Estimated Prompt     : ${stats.estimatedPromptTokens}`,
+            `Remaining Budget     : ${stats.remainingBudget}`,
+            "",
+            `Chunks Evaluated     : ${stats.chunksEvaluated}`,
+            `Chunks Selected      : ${stats.chunksSelected}`,
+            `Chunks Discarded     : ${stats.chunksDiscarded}`,
+            "=================================="
         ];
         Logger.log(lines.join('\n'));
     }

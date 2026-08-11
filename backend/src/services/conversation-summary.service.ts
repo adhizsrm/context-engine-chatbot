@@ -75,12 +75,13 @@ export class ConversationSummaryService {
             : "0.0";
 
         Logger.log([
-            "========== Conversation Summarization ==========",
+            "========== CONVERSATION COMPRESSION ==========",
             `Original Response Characters : ${originalLength}`,
+            `Maximum Summary Length       : ${APP_CONFIG.MAX_SUMMARY_LENGTH}`,
             `Summary Characters           : ${summaryLength}`,
-            `Compression Ratio            : ${applied ? compressionRatio + "%" : "0.0% (N/A)"}`,
-            `Optimization Applied         : ${applied ? "Yes" : "No"}`,
-            "==============================================="
+            `Compression Ratio            : ${applied ? compressionRatio + "%" : "0.0%"}`,
+            `Compression Applied          : ${applied ? "Yes" : "No"}`,
+            "=============================================="
         ].join('\n'));
     }
 }

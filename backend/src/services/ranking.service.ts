@@ -82,34 +82,19 @@ export class RankingService {
         final: RetrievedChunk[],
         topK: number
     ): void {
-        const formatPreview = (text: string) => text.replace(/\s+/g, ' ').substring(0, 120) + '...';
-
         const lines = [
-            "========== Re-ranking ==========",
-            "Original Retrieval Order:"
+            "========== RE-RANKING ==========",
+            `Candidates : ${original.length}`,
+            ""
         ];
 
-        original.forEach((c, idx) => {
-            const correspondingScore = mapped[idx].rerankScore;
-            lines.push(
-                `  [Rank ${idx + 1}] ID: ${c.id} | Index: ${c.metadata.chunkIndex} | Source: ${c.retrievalSource}\n` +
-                `    -> Semantic Dist: ${c.semanticDistance?.toFixed(4) || 'N/A'} | Keyword Score: ${c.keywordScore?.toFixed(4) || 'N/A'} | Final Score: ${correspondingScore?.toFixed(4)}\n` +
-                `    -> Preview: "${formatPreview(c.text)}"`
-            );
+        final.forEach((c, idx) => {
+            const src = c.retrievalSource || 'vector';
+            lines.push(`[${idx + 1}] Score: ${(c.rerankScore ?? 0).toFixed(4)} | Source: ${src.padEnd(6, ' ')} | Chunk: ${c.metadata.chunkIndex}`);
         });
 
         lines.push("");
-        lines.push("Final Ranked Order:");
-        lines.push(`Selected Top ${topK} Chunks`);
-
-        final.forEach((c, idx) => {
-            lines.push(
-                `  [Rank ${idx + 1}] ID: ${c.id} | Source: ${c.retrievalSource}\n` +
-                `    -> Semantic Dist: ${c.semanticDistance?.toFixed(4) || 'N/A'} | Keyword Score: ${c.keywordScore?.toFixed(4) || 'N/A'} | Final Score: ${c.rerankScore?.toFixed(4)}\n` +
-                `    -> Preview: "${formatPreview(c.text)}"`
-            );
-        });
-
+        lines.push(`Selected: ${final.length} / ${original.length}`);
         lines.push("================================");
         Logger.log(lines.join('\n'));
     }

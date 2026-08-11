@@ -44,17 +44,15 @@ export class ConversationMemoryService {
 
         // Rigorous telemetry extracting explicit bounds perfectly logging mapped variables 
         if (APP_CONFIG.DEBUG_MODE) {
-            const formatPreview = (text: string) => text.replace(/\s+/g, ' ').substring(0, 100);
-
             const debugLines: string[] = [
-                "========== Conversation Memory ==========",
-                `Current Session: ${sessionId}`,
-                `Conversation Count: ${history.length} / ${this.MAX_TURNS}`,
-                "Recent Conversation:",
-                `  User: "${formatPreview(userQuery)}..."`,
-                `  Assistant: "${formatPreview(assistantResponse)}..."`,
+                "========== CONVERSATION MEMORY ==========",
+                `Current Session       : ${sessionId}`,
+                `Conversation Count    : ${history.length} / ${this.MAX_TURNS}`,
+                `User Query Length     : ${userQuery.length} chars`,
+                `Stored Assistant      : ${assistantResponse.length} chars`,
+                "Memory Representation : Compressed\n",
                 "Conversation Stored In Memory",
-                "======================================="
+                "========================================="
             ];
 
             Logger.log(debugLines.join('\n'));

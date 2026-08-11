@@ -6,6 +6,11 @@ import { APP_CONFIG } from '../config/app.config';
 import { Logger } from '../utils/logger';
 
 export class ChatController {
+    // ---------------------------------------------------------
+    // Logging Request Identification natively tracking counts
+    // ---------------------------------------------------------
+    private static requestCounter = 0;
+
     /**
      * Bootstraps Controller internally capturing required Service Orchestrators globally.
      */
@@ -15,9 +20,15 @@ export class ChatController {
      * Intercepts HTTP endpoints orchestrating semantic vector querying alongside generative model answering sequences natively.
      */
     ask = async (req: Request, res: Response): Promise<void> => {
-        try {
-            const { query } = req.body;
+        const requestId = ++ChatController.requestCounter;
+        const { query } = req.body;
 
+        if (APP_CONFIG.DEBUG_MODE) {
+            const queryPreview = query ? query.substring(0, 50) : "N/A";
+            Logger.log(`\n╔══════════════════════════════════════════════╗\n║ REQUEST #${requestId.toString().padEnd(36, ' ')}║\n║ Query: ${queryPreview.padEnd(39, ' ')}║\n╚══════════════════════════════════════════════╝\n`);
+        }
+
+        try {
             if (!query || typeof query !== 'string') {
                 res.status(400).json({ error: "Missing or invalid 'query' payload in JSON body." });
                 return;
@@ -46,6 +57,10 @@ export class ChatController {
         } catch (error: any) {
             console.error('[ChatController] Runtime Orchestration Error:', error.message);
             res.status(500).json({ error: 'Failed to process RAG workflow and contextual synthesis.' });
+        } finally {
+            if (APP_CONFIG.DEBUG_MODE) {
+                Logger.log(`\n╔══════════════════════════════════════════════╗\n║ END REQUEST #${requestId.toString().padEnd(32, ' ')}║\n╚══════════════════════════════════════════════╝\n`);
+            }
         }
     }
 }

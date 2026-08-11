@@ -51,35 +51,12 @@ export class HybridRetrievalService {
         // Emit diagnostic debugging natively for production logs explicitly
         if (APP_CONFIG.DEBUG_MODE) {
             const lines = [
-                "========== FINAL RETRIEVED CHUNKS =========="
+                "========== RETRIEVAL ==========",
+                `Vector Candidates  : ${vectorResults.length}`,
+                `Keyword Candidates : ${keywordResults.length}`,
+                `Merged Candidates  : ${mergedResults.length}`,
+                "================================"
             ];
-
-            mergedResults.forEach((chunk, index) => {
-                lines.push(JSON.stringify({
-                    rank: index + 1,
-                    id: chunk.id,
-                    chunkIndex: chunk.metadata.chunkIndex,
-                    documentId: chunk.metadata.documentId,
-                    distance: chunk.distance,
-                    preview: chunk.text.replace(/\s+/g, " ").substring(0, 120)
-                }, null, 2));
-            });
-
-            lines.push("============================================");
-            lines.push("");
-            lines.push("========== Hybrid Retrieval ==========");
-            lines.push("Vector Results:");
-            vectorResults.forEach((c, idx) => lines.push(`  [V${idx + 1}] ID: ${c.id} - Distance: ${c.distance?.toFixed(4)}`));
-
-            lines.push("");
-            lines.push("Keyword Results:");
-            keywordResults.forEach((c, idx) => lines.push(`  [K${idx + 1}] ID: ${c.id} - BM25 Score: ${c.distance?.toFixed(4)}`));
-
-            lines.push("");
-            lines.push(`Merged Results: (Total: ${mergedResults.length})`);
-            mergedResults.forEach((c, idx) => lines.push(`  [M${idx + 1}] ID: ${c.id} - Original Score/Dist: ${c.distance?.toFixed(4)}`));
-            lines.push("======================================");
-
             Logger.log(lines.join('\n'));
         }
 

@@ -15,17 +15,7 @@ export class PromptBuilder {
         return historyStr;
     }
 
-    /**
-     * Constructs the strict, unyielding system boundaries required for RAG validation reliably blocking external scopes.
-     * @param query Native user query explicitly unmodified.
-     * @param context Parsed structural string arrays joined securely.
-     * @param history Prior conversational mapped turns tracking multi-turn sequences robustly.
-     * @returns Safe context generation pipeline prompt.
-     */
-    static buildRagPrompt(query: string, context: string, history: ConversationTurn[] = []): string {
-        const historyStr = this.formatHistory(history);
-
-        return `
+    static readonly SYSTEM_PROMPT = `
         You are a helpful and precise Retrieval-Augmented Generation (RAG) assistant.
 
         Answer the user's question using ONLY the information contained in the retrieved context.
@@ -40,7 +30,19 @@ export class PromptBuilder {
 
         "I don't know based on the provided documents."
 
-        Provide clear, concise, and well-structured answers.
+        Provide clear, concise, and well-structured answers.`;
+
+    /**
+     * Constructs the strict, unyielding system boundaries required for RAG validation reliably blocking external scopes.
+     * @param query Native user query explicitly unmodified.
+     * @param context Parsed structural string arrays joined securely.
+     * @param history Prior conversational mapped turns tracking multi-turn sequences robustly.
+     * @returns Safe context generation pipeline prompt.
+     */
+    static buildRagPrompt(query: string, context: string, history: ConversationTurn[] = []): string {
+        const historyStr = this.formatHistory(history);
+
+        return `${this.SYSTEM_PROMPT}
 
         ${historyStr}Retrieved Context
 

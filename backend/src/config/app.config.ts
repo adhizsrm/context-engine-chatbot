@@ -10,6 +10,8 @@ export const APP_CONFIG = {
      * Useful during development; should be disabled in production.
      */
     DEBUG_MODE: process.env.DEBUG_MODE !== 'false',
+    VERBOSE_PROMPT_LOGGING: process.env.VERBOSE_PROMPT_LOGGING === 'true',
+    PROMPT_PREVIEW_LENGTH: parseInt(process.env.PROMPT_PREVIEW_LENGTH || '300', 10),
     OPENROUTER_MODEL: process.env.OPENROUTER_MODEL || 'inclusionai/ling-3.0-flash:free',
     MODEL_CONTEXT_WINDOW: parseInt(process.env.MODEL_CONTEXT_WINDOW || '16384', 10),
     MAX_OUTPUT_TOKENS: parseInt(process.env.MAX_OUTPUT_TOKENS || '2048', 10),

@@ -37,7 +37,7 @@ export class ChatService {
             const formatPreview = (text: string) => text.replace(/\s+/g, ' ').substring(0, 50);
 
             const debugLines: string[] = [];
-            debugLines.push("========== Conversation Context ==========");
+            debugLines.push("========== CONVERSATION CONTEXT ==========");
             debugLines.push(`History Before Decay : ${history.length} turns`);
             debugLines.push(`History After Decay  : ${decayedHistory.length} turns\n`);
 
@@ -47,7 +47,7 @@ export class ChatService {
                 debugLines.push(`Assistant Context: "${formatPreview(turn.assistantResponse)}..."`);
                 debugLines.push(`Assistant Context Length: ${turn.assistantResponse.length} chars\n`);
             });
-            debugLines.push("==========================================");
+            debugLines.push("===========================================");
             Logger.log(debugLines.join('\n'));
         }
 
@@ -93,11 +93,9 @@ export class ChatService {
             if (budgetStats) {
                 PromptTelemetryService.logTokenBudget(budgetStats);
             }
-            Logger.log(`
-                ========== FINAL PROMPT ==========
-                ${prompt}
-                ==================================
-`);
+            if (APP_CONFIG.VERBOSE_PROMPT_LOGGING) {
+                PromptTelemetryService.logPromptPreview(query, finalContextText, history, PromptBuilder.SYSTEM_PROMPT);
+            }
         }
         try {
             // Step 2: Decouple native LLM orchestration executing internally purely utilizing bound abstractions 
