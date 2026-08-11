@@ -35,21 +35,28 @@ export class QueryOptimizationService {
         const sentences = query.split(/(?<=[.?!])\s+/).filter(s => s.trim().length > 0);
         if (sentences.length > 1) return false;
 
-        // 2. WH-question strictly targeting declarative extraction natively natively!
+        // 2. WH-question strictly targeting declarative extraction natively natively! (e.g. "What is Redux?")
         const newSubjectRegex = /^(what|who|where|how|why)\s+(is|are|does|do|can|could|will|would)\s+(?!it\b|this\b|that\b|there\b|he\b|she\b)/i;
         if (newSubjectRegex.test(lower)) return false;
 
-        // 3. Exact matching universally identical isolated traces accurately mapping arrays natively identically cleanly organically flawlessly gracefully natively safely correctly
+        // 3. Exact matching or conversational action-verb prefixes universally identifying isolated traces accurately 
         const cleanQuery = lower.replace(/[^a-z\s]/g, '').trim();
-        if (this.STANDALONE_PHRASES.includes(cleanQuery)) {
+        const matchesPhrase = this.STANDALONE_PHRASES.some(phrase => cleanQuery.startsWith(phrase) || cleanQuery === phrase);
+        if (matchesPhrase) {
             return true;
         }
 
-        // 4. Safely explicitly trace pronouns within short lexical strings statically safely cleanly organically safely flawlessly gracefully natively safely securely reliably organically authentically
-        const wordCount = lower.split(/\s+/).length;
-        const hasPronoun = /\b(it|this|that)\b/.test(lower);
+        // 4. Safely explicitly trace pronouns capturing broader instructional requests robustly natively seamlessly
+        const hasPronoun = /\b(it|this|that|these|those|them)\b/.test(lower);
+        const hasActionVerb = /^(can you|could you|please|explain|why|how|analyze|compare|show|simplify|tell me)\b/i.test(lower);
 
-        if (hasPronoun && wordCount <= 8) {
+        if (hasPronoun && hasActionVerb) {
+            return true;
+        }
+
+        // 5. Short vague conversational traces
+        const wordCount = lower.split(/\s+/).length;
+        if (hasPronoun && wordCount <= 15) {
             return true;
         }
 
@@ -104,12 +111,12 @@ export class QueryOptimizationService {
 
             Logger.log([
                 "========== Query Optimization ==========",
-                `Original Query:\n${query}`,
-                `Optimized Query:\n${optimizedQuery}`,
-                `Optimization Applied:\n${isStandalone ? 'Yes' : 'No'}`,
-                `Reason:\n${reason}`,
+                `Original Query       : ${query}`,
+                `Optimized Query      : ${optimizedQuery}`,
+                `Classification       : ${isStandalone ? 'Follow-Up' : 'Standalone'}`,
+                `Reason               : ${reason}`,
                 "========================================"
-            ].join('\n\n'));
+            ].join('\n'));
         }
 
         return optimizedQuery;
