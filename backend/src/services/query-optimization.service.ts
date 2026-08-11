@@ -74,22 +74,17 @@ export class QueryOptimizationService {
             .trim();
     }
 
-    /**
-     * Optimizes search capabilities strictly mapping contextually incomplete queries structurally securely natively.
-     */
-    static optimizeQuery(query: string, history: ConversationTurn[]): string {
-        if (!history || history.length === 0) {
-            return query;
-        }
-
+    static optimizeQuery(query: string, eligibleHistory: ConversationTurn[], rawHistory: ConversationTurn[] = []): string {
         const isStandalone = this.isStandaloneFollowUp(query);
         let optimizedQuery = query;
+        let selectedTopic = "None (New Subject)";
 
-        if (isStandalone) {
-            const lastTurn = history[history.length - 1];
+        if (isStandalone && eligibleHistory && eligibleHistory.length > 0) {
+            const lastTurn = eligibleHistory[eligibleHistory.length - 1];
             const topic = this.extractTopic(lastTurn.userQuery);
 
             if (topic) {
+                selectedTopic = topic;
                 // Heuristic replacement: mapping pronoun spaces dynamically securely
                 const lowerQuery = query.toLowerCase();
                 if (lowerQuery.includes(' it ')) {
@@ -105,18 +100,48 @@ export class QueryOptimizationService {
         }
 
         if (APP_CONFIG.DEBUG_MODE) {
-            const reason = isStandalone
-                ? "Standalone follow-up"
-                : "New subject detected - optimization skipped";
+            const lines: string[] = [
+                "========== FOLLOW-UP RESOLUTION ==========",
+                "Original Query:",
+                `"${query}"`,
+                "",
+                "Eligible Candidates:"
+            ];
 
-            Logger.log([
-                "========== Query Optimization ==========",
-                `Original Query       : ${query}`,
-                `Optimized Query      : ${optimizedQuery}`,
-                `Classification       : ${isStandalone ? 'Follow-Up' : 'Standalone'}`,
-                `Reason               : ${reason}`,
-                "========================================"
-            ].join('\n'));
+            if (!eligibleHistory || eligibleHistory.length === 0) {
+                lines.push("None");
+            } else {
+                eligibleHistory.forEach((t, idx) => {
+                    const rawIndex = rawHistory.indexOf(t);
+                    const recency = rawIndex !== -1 ? (rawHistory.length - 1) - rawIndex : '?';
+                    const fallbackTopic = this.extractTopic(t.userQuery) || "?";
+                    lines.push(`[${idx + 1}] ${fallbackTopic}`);
+                    lines.push(`    Recency: ${recency}`);
+                    lines.push(`    Eligible: Yes\n`);
+                });
+            }
+
+            lines.push("Excluded:");
+            const excludedTurns = rawHistory.filter(t => !t.memoryEligible);
+            if (excludedTurns.length === 0) {
+                lines.push("None\n");
+            } else {
+                excludedTurns.forEach((t) => {
+                    const fallbackTopic = this.extractTopic(t.userQuery) || "?";
+                    lines.push(`[X] ${fallbackTopic}`);
+                    lines.push(`    Eligible: No`);
+                    lines.push(`    Reason: Ungrounded response\n`);
+                });
+            }
+
+            lines.push("Selected Topic:");
+            lines.push(selectedTopic);
+            lines.push("");
+            lines.push("Optimized Query:");
+            lines.push(`"${optimizedQuery}"`);
+            lines.push("==========================================");
+
+            Logger.log(lines.join('\n'));
         }
 
         return optimizedQuery;

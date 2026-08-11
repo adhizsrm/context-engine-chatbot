@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { RetrievalService } from '../services/retrieval.service';
 import { ChatService } from '../services/chat.service';
 import { ConversationMemoryService } from '../services/conversation-memory.service';
+import { MemoryEligibilityService } from '../services/memory-eligibility.service';
 import { APP_CONFIG } from '../config/app.config';
 import { Logger } from '../utils/logger';
 
@@ -41,7 +42,9 @@ export class ChatController {
             const ragResult = await this.chatService.executeRagWorkflow(query, history);
 
             // Step 3: Persist successful compressed interaction intrinsically binding sliding window correctly organically tracking.
-            ConversationMemoryService.addTurn('default-session', query, ragResult.summary);
+            const isGrounded = MemoryEligibilityService.evaluateEligibility(ragResult.response);
+            const isCompressed = ragResult.response.length > ragResult.summary.length;
+            ConversationMemoryService.addTurn('default-session', query, ragResult.summary, isGrounded, isCompressed);
 
             // Step 4: Serve strictly mapped telemetry response natively rendering gracefully mapping HTTP boundaries safely.
             res.status(200).json({

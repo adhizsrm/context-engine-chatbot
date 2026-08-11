@@ -5,6 +5,7 @@ export interface ConversationTurn {
     userQuery: string;
     assistantResponse: string;
     timestamp: number;
+    memoryEligible: boolean;
 }
 
 export class ConversationMemoryService {
@@ -24,13 +25,14 @@ export class ConversationMemoryService {
     /**
      * Appends a fresh conversation interaction seamlessly slicing oldest bounds dropping unneeded noise intelligently.
      */
-    static addTurn(sessionId: string = 'default-session', userQuery: string, assistantResponse: string): void {
+    static addTurn(sessionId: string = 'default-session', userQuery: string, assistantResponse: string, memoryEligible: boolean, isCompressed: boolean = false): void {
         const history = this.memory.get(sessionId) || [];
 
         const turn: ConversationTurn = {
             userQuery,
             assistantResponse,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            memoryEligible
         };
 
         history.push(turn);
@@ -50,7 +52,7 @@ export class ConversationMemoryService {
                 `Conversation Count    : ${history.length} / ${this.MAX_TURNS}`,
                 `User Query Length     : ${userQuery.length} chars`,
                 `Stored Assistant      : ${assistantResponse.length} chars`,
-                "Memory Representation : Compressed\n",
+                `Memory Representation : ${isCompressed ? "Compressed" : "Original"}\n`,
                 "Conversation Stored In Memory",
                 "========================================="
             ];

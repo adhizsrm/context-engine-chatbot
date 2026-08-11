@@ -24,28 +24,44 @@ export class ChatService {
      * @param history Prior strings matching user conversational boundaries explicitly safely securely.
      */
     async executeRagWorkflow(query: string, history: ConversationTurn[]) {
+        const eligibleHistory = history.filter(t => t.memoryEligible);
+
+        if (APP_CONFIG.DEBUG_MODE) {
+            const memoryLines: string[] = ["========== MEMORY ELIGIBILITY =========="];
+            history.forEach((turn, idx) => {
+                memoryLines.push(`Turn ${idx + 1}`);
+                memoryLines.push(`User Query : "${turn.userQuery}"`);
+                memoryLines.push(`Eligible   : ${turn.memoryEligible ? 'Yes' : 'No'}`);
+                memoryLines.push(`Reason     : ${turn.memoryEligible ? 'Grounded response' : 'Ungrounded response'}\n`);
+            });
+            memoryLines.push(`Eligible Turns : ${eligibleHistory.length} / ${history.length}`);
+            memoryLines.push("========================================");
+            Logger.log(memoryLines.join('\n'));
+        }
+
         // Step 1: Synthesize Incomplete Contexts precisely translating missing strings explicitly
-        const optimizedQuery = QueryOptimizationService.optimizeQuery(query, history);
+        const optimizedQuery = QueryOptimizationService.optimizeQuery(query, eligibleHistory, history);
 
         // Step 2: Retrieve tightly clustered documents mimicking optimized translations natively
         const retrievedChunks = await RetrievalService.retrieveContext(optimizedQuery);
 
         // Step 3: Implement mathematical bounds explicitly mapping subset history natively matching Prompt capabilities seamlessly
-        const decayedHistory = ExponentialDecayService.applyDecay(history);
+        const decayedHistory = ExponentialDecayService.applyDecay(eligibleHistory);
 
         if (APP_CONFIG.DEBUG_MODE) {
             const formatPreview = (text: string) => text.replace(/\s+/g, ' ').substring(0, 50);
 
             const debugLines: string[] = [];
             debugLines.push("========== CONVERSATION CONTEXT ==========");
-            debugLines.push(`History Before Decay : ${history.length} turns`);
-            debugLines.push(`History After Decay  : ${decayedHistory.length} turns\n`);
+            debugLines.push(`Raw History           : ${history.length} turns`);
+            debugLines.push(`Eligible History      : ${eligibleHistory.length} turns`);
+            debugLines.push(`After Exponential Decay: ${decayedHistory.length} turns\n`);
 
             decayedHistory.forEach((turn, index) => {
                 debugLines.push(`Conversation ${index + 1}`);
                 debugLines.push(`User: "${formatPreview(turn.userQuery)}..."`);
                 debugLines.push(`Assistant Context: "${formatPreview(turn.assistantResponse)}..."`);
-                debugLines.push(`Assistant Context Length: ${turn.assistantResponse.length} chars\n`);
+                debugLines.push(`Eligible: Yes\n`);
             });
             debugLines.push("===========================================");
             Logger.log(debugLines.join('\n'));
