@@ -1,7 +1,7 @@
 import weaviate, { WeaviateClient } from 'weaviate-client';
 import { WEAVIATE_CONFIG } from '../config/weaviate.config';
 import { EmbeddedChunk } from '../types/embedding.types';
-import { RetrievedChunk } from '../types/chunk.types';
+import { RetrievedChunk, RetrievalFilter } from '../types/chunk.types';
 import { Logger } from '../utils/logger';
 import { APP_CONFIG } from '../config/app.config';
 
@@ -102,7 +102,7 @@ export class WeaviateService {
      * @param topK The maximum number of contextual chunks to retrieve (default: 5).
      * @returns An array of structurally cohesive RetrievedChunk objects.
      */
-    static async search(queryVector: number[], topK: number = APP_CONFIG.RETRIEVAL_TOP_K): Promise<RetrievedChunk[]> {
+    static async search(queryVector: number[], topK: number = APP_CONFIG.RETRIEVAL_TOP_K, filter?: RetrievalFilter): Promise<RetrievedChunk[]> {
         if (!this.client) {
             throw new Error("WeaviateService not initialized. Application boots must call initialize() primarily.");
         }
@@ -110,9 +110,12 @@ export class WeaviateService {
         try {
             const collection = this.client.collections.get(WEAVIATE_CONFIG.COLLECTION_NAME);
 
+            const nativeFilter = filter?.documentId ? collection.filter.byProperty('documentId').equal(filter.documentId) : undefined;
+
             // Execute the native nearest neighbor mathematical query matching the vector bounds.
             const result = await collection.query.nearVector(queryVector, {
                 limit: topK,
+                filters: nativeFilter,
                 returnMetadata: ['distance']
             });
 
@@ -142,7 +145,7 @@ export class WeaviateService {
      * @param query The user's exact keyword mapping string.
      * @param topK The maximum limit of contextual chunks (default: 5).
      */
-    static async keywordSearch(query: string, topK: number = APP_CONFIG.RETRIEVAL_TOP_K): Promise<RetrievedChunk[]> {
+    static async keywordSearch(query: string, topK: number = APP_CONFIG.RETRIEVAL_TOP_K, filter?: RetrievalFilter): Promise<RetrievedChunk[]> {
         if (!this.client) {
             throw new Error("WeaviateService not initialized. Application boots must call initialize() primarily.");
         }
@@ -150,9 +153,12 @@ export class WeaviateService {
         try {
             const collection = this.client.collections.get(WEAVIATE_CONFIG.COLLECTION_NAME);
 
+            const nativeFilter = filter?.documentId ? collection.filter.byProperty('documentId').equal(filter.documentId) : undefined;
+
             // Execute the native BM25 syntactic query.
             const result = await collection.query.bm25(query, {
                 limit: topK,
+                filters: nativeFilter,
                 returnMetadata: ['score']
             });
 

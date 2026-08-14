@@ -22,11 +22,12 @@ export class ChatController {
      */
     ask = async (req: Request, res: Response): Promise<void> => {
         const requestId = ++ChatController.requestCounter;
-        const { query } = req.body;
+        const { query, documentId } = req.body;
 
         if (APP_CONFIG.DEBUG_MODE) {
             const queryPreview = query ? query.substring(0, 50) : "N/A";
-            Logger.log(`\n╔══════════════════════════════════════════════╗\n║ REQUEST #${requestId.toString().padEnd(36, ' ')}║\n║ Query: ${queryPreview.padEnd(39, ' ')}║\n╚══════════════════════════════════════════════╝\n`);
+            const docIdLog = documentId ? documentId : 'None';
+            Logger.log(`\n╔══════════════════════════════════════════════╗\n║ REQUEST #${requestId.toString().padEnd(36, ' ')}║\n║ Query: ${queryPreview.padEnd(39, ' ')}║\n║ Document ID: ${docIdLog.padEnd(33, ' ')}║\n╚══════════════════════════════════════════════╝\n`);
         }
 
         try {
@@ -38,8 +39,10 @@ export class ChatController {
             // Step 1: Extract Prior Memory natively matching session mapping
             const history = ConversationMemoryService.getHistory('default-session');
 
+            const filter = documentId ? { documentId } : undefined;
+
             // Step 2: Delegate complex downstream Retrieval, Rendering, and Prompting completely natively securely organically.
-            const ragResult = await this.chatService.executeRagWorkflow(query, history);
+            const ragResult = await this.chatService.executeRagWorkflow(query, history, filter);
 
             // Step 3: Persist successful compressed interaction intrinsically binding sliding window correctly organically tracking.
             const isGrounded = MemoryEligibilityService.evaluateEligibility(ragResult.response);

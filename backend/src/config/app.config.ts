@@ -20,4 +20,5 @@ export const APP_CONFIG = {
     MEMORY_DECAY_FACTOR: parseFloat(process.env.MEMORY_DECAY_FACTOR || '0.8'),
     MEMORY_DECAY_THRESHOLD: parseFloat(process.env.MEMORY_DECAY_THRESHOLD || '0.45'),
     MAX_SUMMARY_LENGTH: parseInt(process.env.MAX_SUMMARY_LENGTH || '300', 10),
+    RETRIEVAL_TOP_K: parseInt(process.env.RETRIEVAL_TOP_K || '5', 10)
 };

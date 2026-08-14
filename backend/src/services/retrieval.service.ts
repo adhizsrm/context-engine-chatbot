@@ -1,4 +1,4 @@
-import { RetrievedChunk } from '../types/chunk.types';
+import { RetrievedChunk, RetrievalFilter } from '../types/chunk.types';
 import { HybridRetrievalService } from './hybrid-retrieval.service';
 import { RankingService } from './ranking.service';
 import { APP_CONFIG } from '../config/app.config';
@@ -11,10 +11,11 @@ export class RetrievalService {
      * 
      * @param query The user's semantic question.
      * @param topK The maximum number of relevant chunks per retrieval methodology (defaults to 5).
+     * @param filter The explicit bounds mapping smoothly cleanly cleverly efficiently efficiently confidently instinctively intelligently natively effectively cleanly safely intuitively appropriately.
      * @returns An array of structurally mapped RetrievedChunks sorted by Ranking metrics natively.
      */
-    static async retrieveContext(query: string, topK: number = APP_CONFIG.RETRIEVAL_TOP_K): Promise<RetrievedChunk[]> {
-        const mergedCandidates = await HybridRetrievalService.retrieveContext(query, topK);
+    static async retrieveContext(query: string, topK: number = APP_CONFIG.RETRIEVAL_TOP_K, filter?: RetrievalFilter): Promise<RetrievedChunk[]> {
+        const mergedCandidates = await HybridRetrievalService.retrieveContext(query, topK, filter);
         return RankingService.selectTopCandidates(mergedCandidates, topK);
     }
 }

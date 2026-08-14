@@ -28,6 +28,10 @@ export interface ChunkMetadata {
     createdAt?: string;
 }
 
+export interface RetrievalFilter {
+    documentId?: string;
+}
+
 export interface TextChunk {
     id: string;
     text: string;

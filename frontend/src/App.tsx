@@ -23,6 +23,9 @@ export default function App() {
   const [docFeedback, setDocFeedback] = useState<string>('');
   const [isDocsLoading, setIsDocsLoading] = useState(false);
 
+  // New Model A required explicit single-document chat scope
+  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
+
   // ==========================================
   // PART 1: CHAT PERSISTENCE HYDRATION & SYNC
   // ==========================================
@@ -63,6 +66,12 @@ export default function App() {
     try {
       const res = await api.get('/documents');
       setDocuments(res.data);
+      // Ensure we don't accidentally hold a deleted document's ID
+      setSelectedDocumentId((prevId) => {
+        if (!prevId) return prevId;
+        const currentlyExists = res.data.some((d: IndexedDocument) => d.documentId === prevId);
+        return currentlyExists ? prevId : null;
+      });
     } catch (err: any) {
       setDocFeedback(`Failed to fetch documents: ${err.message}`);
     } finally {
@@ -78,6 +87,9 @@ export default function App() {
   const handleDeleteDocument = async (id: string) => {
     setDocFeedback(`Deleting document ${id}...`);
     try {
+      if (id === selectedDocumentId) {
+        setSelectedDocumentId(null);
+      }
       await api.delete(`/documents/${id}`);
       setDocFeedback(`Successfully purged document ${id} from Vector index.`);
       fetchDocuments(); // Refresh bounds internally isolating state cleanly 
@@ -114,7 +126,7 @@ export default function App() {
   // ==========================================
   const handleSend = async () => {
     const query = inputMsg.trim();
-    if (!query || isChatLoading) return;
+    if (!query || isChatLoading || !selectedDocumentId) return;
 
     setInputMsg('');
     const userMsg: ChatMessage = { id: Date.now().toString(), sender: 'user', text: query };
@@ -122,7 +134,10 @@ export default function App() {
     setIsChatLoading(true);
 
     try {
-      const res = await api.post('/chat', { query });
+      const res = await api.post('/chat', {
+        query,
+        documentId: selectedDocumentId
+      });
       const assistantMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         sender: 'assistant',
@@ -171,19 +186,37 @@ export default function App() {
           {isDocsLoading && documents.length === 0 ? (
             <p>Loading documents...</p>
           ) : documents.map((doc, i) => (
-            <div key={i} className="doc-card">
-              <div className="doc-card-info">
-                <h4>{doc.filename}</h4>
-                <p>ID: {doc.documentId}</p>
-                <p>Uploaded: {new Date(doc.timestamp).toLocaleString()} | Vectors: {doc.chunkCount}</p>
+            <div
+              key={i}
+              className={`doc-card ${selectedDocumentId === doc.documentId ? 'selected' : ''}`}
+              onClick={() => setSelectedDocumentId(doc.documentId)}
+              style={{
+                cursor: 'pointer',
+                border: selectedDocumentId === doc.documentId ? '2px solid #007bff' : '1px solid #ccc',
+                backgroundColor: selectedDocumentId === doc.documentId ? '#f8fbff' : '#fff'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '15px' }}>
+                <input
+                  type="radio"
+                  name="document-selection"
+                  checked={selectedDocumentId === doc.documentId}
+                  onChange={() => setSelectedDocumentId(doc.documentId)}
+                  style={{ marginTop: '5px' }}
+                />
+                <div className="doc-card-info" style={{ flexGrow: 1 }}>
+                  <h4>{doc.filename}</h4>
+                  <p>ID: {doc.documentId}</p>
+                  <p>Uploaded: {new Date(doc.timestamp).toLocaleString()} | Vectors: {doc.chunkCount}</p>
+                </div>
+                <button
+                  className="btn-delete"
+                  onClick={(e) => { e.stopPropagation(); handleDeleteDocument(doc.documentId); }}
+                  disabled={docFeedback.includes('Deleting')}
+                >
+                  Delete
+                </button>
               </div>
-              <button
-                className="btn-delete"
-                onClick={() => handleDeleteDocument(doc.documentId)}
-                disabled={docFeedback.includes('Deleting')}
-              >
-                Delete
-              </button>
             </div>
           ))}
         </div>
@@ -195,6 +228,9 @@ export default function App() {
       <div className="section" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2>Chat</h2>
+          <div style={{ fontWeight: 600, color: selectedDocumentId ? '#007bff' : '#666' }}>
+            Chat Scope: {selectedDocumentId ? documents.find(d => d.documentId === selectedDocumentId)?.filename || selectedDocumentId : 'No document selected'}
+          </div>
           <button
             onClick={handleClearChat}
             style={{ backgroundColor: '#dc3545', padding: '6px 12px', fontSize: '0.85em' }}>
@@ -230,8 +266,8 @@ export default function App() {
             disabled={isChatLoading}
             placeholder={isChatLoading ? "Wait for response..." : "Type your question..."}
           />
-          { /* Button disabled sequentially preventing dual-firing */}
-          <button onClick={handleSend} disabled={isChatLoading || !inputMsg.trim()}>Send</button>
+          { /* Button disabled sequentially preventing dual-firing and strictly adhering to Model A specification requirement */}
+          <button onClick={handleSend} disabled={isChatLoading || !inputMsg.trim() || !selectedDocumentId}>Send</button>
         </div>
       </div>
     </div>

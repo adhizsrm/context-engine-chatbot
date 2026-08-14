@@ -22,8 +22,9 @@ export class ChatService {
      * Orchestrates the complete RAG workflow internally explicitly safely tracking domains seamlessly natively!
      * @param query The raw untouched explicitly natural user command natively.
      * @param history Prior strings matching user conversational boundaries explicitly safely securely.
+     * @param filter The explicit optional bounds evaluating perfectly inherently reliably natively purely.
      */
-    async executeRagWorkflow(query: string, history: ConversationTurn[]) {
+    async executeRagWorkflow(query: string, history: ConversationTurn[], filter?: import('../types/chunk.types').RetrievalFilter) {
         const eligibleHistory = history.filter(t => t.memoryEligible);
 
         if (APP_CONFIG.DEBUG_MODE) {
@@ -43,7 +44,7 @@ export class ChatService {
         const optimizedQuery = QueryOptimizationService.optimizeQuery(query, eligibleHistory, history);
 
         // Step 2: Retrieve tightly clustered documents mimicking optimized translations natively
-        const retrievedChunks = await RetrievalService.retrieveContext(optimizedQuery);
+        const retrievedChunks = await RetrievalService.retrieveContext(optimizedQuery, APP_CONFIG.RETRIEVAL_TOP_K, filter);
 
         // Step 3: Implement mathematical bounds explicitly mapping subset history natively matching Prompt capabilities seamlessly
         const decayedHistory = ExponentialDecayService.applyDecay(eligibleHistory);
