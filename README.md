@@ -6,13 +6,19 @@ A document chatbot application designed to gradually evolve into a complete Cont
 ## Architecture
 - **Backend**: Node.js, Express, TypeScript
 - **Frontend**: React, Vite, TypeScript
-- **Storage**: In-memory storage (No Database yet)
-- **Document Parsing**: `pdf-parse` (Planned)
-- **LLM**: Abstraction layer starting with MockLLMProvider (Planned)
+- **Storage**: Weaviate Vector Database
+- **Document Parsing**: PDF Parsing, Text Chunking, Embeddings Pipeline
+- **LLM**: Provider Factory supporting Mistral & OpenRouter
+- **Orchestration**: Python/FastAPI LangGraph Microservice
 
 ## Folder Structure
 ```text
 chatbot/
+├── agent-service/ # Python FastAPI LangGraph Orchestrator
+│   ├── main.py
+│   ├── nodes.py
+│   ├── state.py
+│   └── config.py
 ├── backend/
 │   ├── src/
 │   │   ├── chat/          # Chat conversation module

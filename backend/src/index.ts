@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import uploadRoutes from './routes/upload.routes';
 import chatRoutes from './routes/chat.routes';
 import documentRoutes from './routes/document.routes';
+import agentRoutes from './routes/agent.routes';
 import { WeaviateService } from './vector-store/weaviate.service';
 
 dotenv.config();
@@ -22,7 +23,15 @@ process.on('uncaughtException', (error) => {
 const app: Express = express();
 const port = process.env.PORT || 3000;
 
-app.use(cors({ origin: 'http://localhost:5173' }));
+app.use(cors({
+  origin: 'http://localhost:5173',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  maxAge: 86400
+}));
+
+
 app.use(express.json());
 
 app.get('/health', (_req: Request, res: Response) => {
@@ -39,6 +48,7 @@ app.use((req: Request, res: Response, next) => {
 app.use('/api', uploadRoutes); // Contains /upload ... could be restructured internally
 app.use('/api/chat', chatRoutes);
 app.use('/api/documents', documentRoutes);
+app.use('/api/agent', agentRoutes);
 
 // Simple root route
 app.get('/', (req: Request, res: Response) => {

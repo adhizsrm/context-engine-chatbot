@@ -19,5 +19,15 @@ services:
     volumes:
       - weaviate_data:/var/lib/weaviate
 
+  agent-service:
+    build: ./agent-service
+    container_name: rag-agent
+    ports:
+      - "8000:8000"
+    environment:
+      - EXPRESS_BACKEND_URL=http://host.docker.internal:3000
+    depends_on:
+      - weaviate
+
 volumes:
   weaviate_data:

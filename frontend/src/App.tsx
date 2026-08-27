@@ -1,5 +1,6 @@
 import { useState, type KeyboardEvent, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
+import { ChatOrchestrator, type OrchestratedResponse } from './services/agent.service';
 
 const LOCAL_STORAGE_KEY = 'rag_chat_history';
 
@@ -7,7 +8,15 @@ const LOCAL_STORAGE_KEY = 'rag_chat_history';
 const api = axios.create({ baseURL: 'http://localhost:3000/api' });
 
 interface Source { documentId: string; distance?: number; }
-interface ChatMessage { id: string; sender: 'user' | 'assistant'; text: string; sources?: Source[]; isError?: boolean; }
+interface ChatMessage {
+  id: string;
+  sender: 'user' | 'assistant';
+  text: string;
+  sources?: Source[];
+  isError?: boolean;
+  orchestrationTarget?: OrchestratedResponse['metadata'];
+  orchestrated?: boolean;
+}
 interface IndexedDocument { documentId: string; filename: string; timestamp: string; chunkCount: number; }
 
 const LoadingDots = ({ text }: { text: string }) => (
@@ -196,17 +205,15 @@ export default function App() {
 
     try {
       // The backend accepts selectedDocumentId safely mapping filters inherently explicitly elegantly 
-      const payload: any = { query };
-      if (selectedDocumentId) {
-        payload.documentId = selectedDocumentId;
-      }
+      const res = await ChatOrchestrator.chat(query, selectedDocumentId);
 
-      const res = await api.post('/chat', payload);
       const assistantMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         sender: 'assistant',
-        text: res.data.response,
-        sources: res.data.sources
+        text: res.response,
+        sources: res.sources,
+        orchestrated: res.orchestrated,
+        orchestrationTarget: res.metadata
       };
       setMessages(prev => [...prev, assistantMsg]);
     } catch (err: any) {
@@ -357,6 +364,27 @@ export default function App() {
                 <div key={msg.id} className={`message-row ${msg.sender}`}>
                   <div className="message-bubble">
                     <div className="message-content">{msg.text}</div>
+
+                    {msg.sender === 'assistant' && msg.orchestrated && msg.orchestrationTarget && (
+                      <div style={{ marginTop: '12px', padding: '8px', background: '#f8f9fa', border: '1px solid #e1e4e8', borderRadius: '6px', fontSize: '11px', color: '#586069' }}>
+                        <div style={{ fontWeight: 'bold', marginBottom: '4px', display: 'flex', gap: '5px', alignItems: 'center' }}>
+                          <span style={{ width: 8, height: 8, background: '#00875a', borderRadius: '50%', display: 'inline-block' }}></span>
+                          LangGraph Orchestrated
+                        </div>
+                        <div>Query Type: {msg.orchestrationTarget.queryType}</div>
+                        <div>Routing: {msg.orchestrationTarget.retrievalStrategy}</div>
+                        <div>Confidence: {(msg.orchestrationTarget.confidence * 100).toFixed(0)}%</div>
+                        <div>Path: {msg.orchestrationTarget.nodePath.join(' ➔ ')}</div>
+                      </div>
+                    )}
+
+                    {msg.sender === 'assistant' && msg.orchestrated === false && !msg.isError && (
+                      <div style={{ marginTop: '12px', fontSize: '11px', color: '#586069', display: 'flex', gap: '5px', alignItems: 'center' }}>
+                        <span style={{ width: 8, height: 8, background: '#ff991f', borderRadius: '50%', display: 'inline-block' }}></span>
+                        Direct Express Resolution
+                      </div>
+                    )}
+
                     {msg.sender === 'assistant' && msg.sources && (
                       <MessageSources sources={msg.sources} documents={documents} />
                     )}
