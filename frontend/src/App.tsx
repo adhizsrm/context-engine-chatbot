@@ -20,6 +20,8 @@ interface ChatMessage {
 }
 interface IndexedDocument { documentId: string; filename: string; timestamp: string; chunkCount: number; }
 
+const formatFilename = (name: string) => name.replace(/^\d+-\d+-/, '');
+
 const LoadingDots = ({ text }: { text: string }) => (
   <div className="loading-container" aria-live="polite">
     <span className="loading-text">{text}</span>
@@ -46,7 +48,7 @@ const MessageSources = ({ sources, documents }: { sources: Source[], documents: 
             const doc = documents.find(d => d.documentId === s.documentId);
             return (
               <div key={i} className="source-item" title={`ID: ${s.documentId}`}>
-                <div className="source-title">▸ {doc ? doc.filename : s.documentId}</div>
+                <div className="source-title">▸ {doc ? formatFilename(doc.filename) : s.documentId}</div>
                 {s.distance !== undefined && <div className="source-distance">Distance: {s.distance.toFixed(4)}</div>}
               </div>
             );
@@ -65,6 +67,17 @@ export default function App() {
   const [inputMsg, setInputMsg] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
+
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const saved = localStorage.getItem('rag_theme');
+    if (saved) return saved as 'light' | 'dark';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('rag_theme', theme);
+    document.body.classList.toggle('dark-theme', theme === 'dark');
+  }, [theme]);
 
   const [documents, setDocuments] = useState<IndexedDocument[]>([]);
   const [isDocsLoading, setIsDocsLoading] = useState(false);
@@ -240,6 +253,7 @@ export default function App() {
 
   // Compute selected UI text natively specifically explicitly 
   const selectedDocName = selectedDocumentId ? documents.find(d => d.documentId === selectedDocumentId)?.filename : null;
+  const displaySelectedName = selectedDocName ? formatFilename(selectedDocName) : null;
 
   return (
     <div className="app-container">
@@ -305,7 +319,7 @@ export default function App() {
                   <div className="doc-item-left">
                     <div className="doc-item-check">{selectedDocumentId === doc.documentId && '✓'}</div>
                     <div className="doc-item-info">
-                      <div className="doc-item-title" title={doc.filename}>{doc.filename}</div>
+                      <div className="doc-item-title" title={formatFilename(doc.filename)}>{formatFilename(doc.filename)}</div>
                       <div className="doc-item-meta">{doc.chunkCount} chunks</div>
                     </div>
                   </div>
@@ -334,12 +348,23 @@ export default function App() {
       <main className="main-chat">
         <header className="chat-header">
           <div className="chat-header-titles">
-            <h2>Document Assistant</h2>
-            <div className="chat-subtitle">Ask questions about your indexed documents</div>
+            <h2>RAG Chatbot</h2>
+            {/* <div className="chat-subtitle">Ask questions about your indexed documents</div> */}
           </div>
           <div className="chat-header-actions">
+            <button
+              className="btn-theme-toggle"
+              onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
+              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            >
+              {theme === 'light' ? (
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+              ) : (
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+              )}
+            </button>
             <div className="retrieval-scope">
-              {selectedDocName ? `Searching in: ${selectedDocName}` : 'Searching all documents'}
+              {displaySelectedName ? `Searching in: ${displaySelectedName}` : 'Searching all documents'}
             </div>
             <button className="btn-clear" onClick={handleClearChat} disabled={messages.length === 0}>
               Clear chat
@@ -352,12 +377,12 @@ export default function App() {
             <div className="empty-state">
               <h3>Document Assistant</h3>
               <p>Ask questions about your documents.</p>
-              <div className="suggestions">
+              {/* <div className="suggestions">
                 <span>Try:</span>
                 <button className="suggestion-btn" onClick={() => handleSend("What is Redux?")}>"What is Redux?"</button>
                 <button className="suggestion-btn" onClick={() => handleSend("Explain middleware")}>"Explain middleware"</button>
                 <button className="suggestion-btn" onClick={() => handleSend("What is Express?")}>"What is Express?"</button>
-              </div>
+              </div> */}
             </div>
           ) : (
             <div className="chat-thread">
@@ -373,9 +398,9 @@ export default function App() {
                     )}
 
                     {msg.sender === 'assistant' && msg.orchestrated && msg.orchestrationTarget && (
-                      <div style={{ marginTop: '12px', padding: '8px', background: '#f8f9fa', border: '1px solid #e1e4e8', borderRadius: '6px', fontSize: '11px', color: '#586069' }}>
-                        <div style={{ fontWeight: 'bold', marginBottom: '4px', display: 'flex', gap: '5px', alignItems: 'center' }}>
-                          <span style={{ width: 8, height: 8, background: '#00875a', borderRadius: '50%', display: 'inline-block' }}></span>
+                      <div style={{ marginTop: '12px', padding: '8px', background: 'var(--suggestion-bg)', border: '1px solid var(--border-light)', borderRadius: '6px', fontSize: '11px', color: 'var(--text-secondary)' }}>
+                        <div style={{ fontWeight: 'bold', marginBottom: '4px', display: 'flex', gap: '5px', alignItems: 'center', color: 'var(--text-main)' }}>
+                          <span style={{ width: 8, height: 8, background: 'var(--success)', borderRadius: '50%', display: 'inline-block' }}></span>
                           LangGraph Orchestrated
                         </div>
                         <div>Query Type: {msg.orchestrationTarget.queryType}</div>
@@ -386,7 +411,7 @@ export default function App() {
                     )}
 
                     {msg.sender === 'assistant' && msg.orchestrated === false && !msg.isError && (
-                      <div style={{ marginTop: '12px', fontSize: '11px', color: '#586069', display: 'flex', gap: '5px', alignItems: 'center' }}>
+                      <div style={{ marginTop: '12px', fontSize: '11px', color: 'var(--text-secondary)', display: 'flex', gap: '5px', alignItems: 'center' }}>
                         <span style={{ width: 8, height: 8, background: '#ff991f', borderRadius: '50%', display: 'inline-block' }}></span>
                         Direct Express Resolution
                       </div>
@@ -412,6 +437,14 @@ export default function App() {
 
         <footer className="chat-input-area">
           <div className="input-wrapper">
+            <button
+              className="btn-upload"
+              title="Attach file"
+              onClick={() => uploadStatus === 'idle' && fileInputRef.current?.click()}
+              disabled={uploadStatus !== 'idle'}
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
             <textarea
               value={inputMsg}
               onChange={e => setInputMsg(e.target.value)}
@@ -424,8 +457,9 @@ export default function App() {
               className="btn-send"
               onClick={() => handleSend()}
               disabled={isChatLoading || !inputMsg.trim()}
+              title="Send message"
             >
-              Send
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4L12 20M12 4L6 10M12 4L18 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
             </button>
           </div>
           <div className="input-footer">
