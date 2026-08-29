@@ -1,3 +1,4 @@
+import ReactMarkdown from 'react-markdown';
 import { useState, type KeyboardEvent, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { ChatOrchestrator, type OrchestratedResponse } from './services/agent.service';
@@ -363,7 +364,13 @@ export default function App() {
               {messages.map(msg => (
                 <div key={msg.id} className={`message-row ${msg.sender}`}>
                   <div className="message-bubble">
-                    <div className="message-content">{msg.text}</div>
+                    {msg.sender === 'assistant' ? (
+                      <div className="message-content markdown-content">
+                        <ReactMarkdown>{msg.text}</ReactMarkdown>
+                      </div>
+                    ) : (
+                      <div className="message-content">{msg.text}</div>
+                    )}
 
                     {msg.sender === 'assistant' && msg.orchestrated && msg.orchestrationTarget && (
                       <div style={{ marginTop: '12px', padding: '8px', background: '#f8f9fa', border: '1px solid #e1e4e8', borderRadius: '6px', fontSize: '11px', color: '#586069' }}>
