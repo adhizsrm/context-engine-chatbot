@@ -297,18 +297,24 @@ export default function App() {
             <div style={{ padding: '0 20px' }}>
               <LoadingDots text="Loading documents" />
             </div>
+          ) : documents.length === 0 ? (
+            <div style={{ padding: '10px 20px', color: 'var(--text-secondary)', fontSize: '13px' }}>
+              None found. Please upload a PDF to get started.
+            </div>
           ) : (
             <div className="doc-list">
               {/* "All Documents" native option natively natively gracefully gracefully */}
-              <div
-                className={`doc-item ${!selectedDocumentId ? 'selected' : ''}`}
-                onClick={() => setSelectedDocumentId(null)}
-              >
-                <div className="doc-item-left">
-                  <div className="doc-item-check">{!selectedDocumentId && '✓'}</div>
-                  <div className="doc-item-title">All Documents</div>
+              {documents.length > 0 && (
+                <div
+                  className={`doc-item ${!selectedDocumentId ? 'selected' : ''}`}
+                  onClick={() => setSelectedDocumentId(null)}
+                >
+                  <div className="doc-item-left">
+                    <div className="doc-item-check">{!selectedDocumentId && '✓'}</div>
+                    <div className="doc-item-title">All Documents</div>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {documents.map((doc) => (
                 <div
@@ -363,9 +369,11 @@ export default function App() {
                 <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
               )}
             </button>
-            <div className="retrieval-scope">
-              {displaySelectedName ? `Searching in: ${displaySelectedName}` : 'Searching all documents'}
-            </div>
+            {displaySelectedName && (
+              <div className="retrieval-scope">
+                Searching in: {displaySelectedName}
+              </div>
+            )}
             <button className="btn-clear" onClick={handleClearChat} disabled={messages.length === 0}>
               Clear chat
             </button>
